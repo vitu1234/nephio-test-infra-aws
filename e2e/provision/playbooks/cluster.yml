@@ -1,0 +1,91 @@
+---
+# SPDX-license-identifier: Apache-2.0
+##############################################################################
+# Copyright (c) 2023 The Nephio Authors.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+- name: Install kpt command-line
+  ansible.builtin.include_role:
+    name: andrewrothstein.kpt
+  vars:
+    kpt_ver: '1.0.0-beta.49'
+    kpt_checksums:
+      '1.0.0-beta.49':
+        linux_amd64: sha256:8de2996018992ea946c9002aa43c85250a78d9fa3eb1c8da24c7878d7d24b9b7
+        linux_arm64: sha256:18dfb4540eeed32d2bdded612b3aa678cee6fdcdb14813e184c1a54b4ca35b56
+        darwin_amd64: sha256:558c1b082a8f1221b88cf6728178076190adda58db84e129ffb40f1e2a462759
+        darwin_arm64: sha256:bbaa7c6b4c7af0f9cdda694476a9b3b8d9fdd8fba3c0c0ec49f4f26687a2527a
+
+- name: install pip3
+  apt: name=python3-pip state=present
+
+- name: Install kubernetes python package
+  become: true
+  ansible.builtin.pip:
+    name: kubernetes==26.1.0
+    executable: pip3
+    
+- name: Gather facts
+  setup:
+  
+- name: Unarchive /tmp/porchctl.tgz into /usr/local/bin/
+  become: true
+  become_user: root
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: https://github.com/nephio-project/porch/releases/download/v2.0.0/porchctl_2.0.0_linux_amd64.tar.gz
+    dest: /usr/local/bin/
+    creates: /usr/local/bin/porchctl
+
+- name: Include Bootstrap Role
+  include_role:
+    name: bootstrap
+
+- name: Include Install Role
+  include_role:
+    name: install
+
+- name: Deploy repositories
+  ansible.builtin.include_role:
+    name: kpt
+  loop:
+    - {pkg: distros/sandbox/repository, dest: /tmp/repository/mgmt}
+    - {pkg: nephio/optional/rootsync, dest: /tmp/rootsync/mgmt}
+    - {pkg: distros/sandbox/repository, dest: /tmp/repository/mgmt-staging}
+  vars:
+    repo_uri: "{{ nephio_catalog_repo_uri }}"
+    local_dest_directory: "{{ item.dest }}"
+    pkg: "{{ item.pkg }}"
+    version: main
+    for_deployment: true
+    context: "{{ k8s.context }}"
+    kpt_async: 900
+    kpt_poll: 0
+- name: Wait for packages to be applied
+  ansible.builtin.async_status:
+    jid: "{{ item.ansible_job_id }}"
+  register: job_result
+  with_items: "{{ all_kpt_apply }}"
+  when: all_kpt_apply is defined
+  until: job_result.finished
+  retries: 90
+  delay: 10
+- name: Wait for repositories
+  kubernetes.core.k8s:
+    context: "{{ k8s.context }}"
+    definition:
+      apiVersion: config.porch.kpt.dev/v1alpha1
+      kind: Repository
+      metadata:
+        name: "{{ item }}"
+        namespace: default
+    wait: true
+    wait_condition:
+      type: Ready
+      status: true
+  loop:
+    - mgmt
+    - mgmt-staging

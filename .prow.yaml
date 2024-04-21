@@ -1,0 +1,546 @@
+presubmits:
+  - name: pre-submit-test-infra-validate-local
+    annotations:
+    labels:
+    run_if_changed: '^prow/config/((plugins|config).yaml|jobs/)'
+    skip_report: false
+    decorate: true
+    cluster: default
+    spec:
+      containers:
+        - image: "gcr.io/k8s-prow/checkconfig:v20221208-8898931a7f"
+          command:
+            - "checkconfig"
+          args:
+            - "--plugin-config=prow/config/plugins.yaml"
+            - "--config-path=prow/config/config.yaml"
+  - name: provision-linter
+    annotations:
+    labels:
+    run_if_changed: '^e2e/provision'
+    skip_report: false
+    decorate: true
+    cluster: default
+    spec:
+      containers:
+        - image: "nephio/linter:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - set -eE; cd e2e/provision; /usr/local/bin/tox -e lint
+  - name: images-hadolint
+    annotations:
+    labels:
+    run_if_changed: '^images/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    spec:
+      containers:
+        - image: "hadolint/hadolint:v2.12.0-debian"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - set -eE; for dockerfile in images/*/Dockerfile; do hadolint $dockerfile -t warning; done
+  - name: bootstrap-integration
+    annotations:
+    labels:
+    run_if_changed: '^e2e/provision/playbooks/roles/bootstrap'
+    skip_report: false
+    decorate: true
+    cluster: default
+    spec:
+      containers:
+        - image: "nephio/molecule:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - set -eE; cd e2e/provision; /usr/local/bin/tox -e bootstrap -- --scenario-name ci --driver-name gce
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+  - name: kpt-integration
+    annotations:
+    labels:
+    run_if_changed: '^e2e/provision/playbooks/roles/kpt'
+    skip_report: false
+    decorate: true
+    cluster: default
+    spec:
+      containers:
+        - image: "nephio/molecule:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - set -eE; cd e2e/provision; /usr/local/bin/tox -e kpt -- --scenario-name ci --driver-name gce
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+  - name: install-integration
+    annotations:
+    labels:
+    run_if_changed: '^e2e/provision/playbooks/roles/install'
+    skip_report: false
+    decorate: true
+    cluster: default
+    spec:
+      containers:
+        - image: "nephio/molecule:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - set -eE; cd e2e/provision; /usr/local/bin/tox -e install -- --scenario-name ci --driver-name gce
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+  - name: e2e-free5gc-ubuntu-focal
+    annotations:
+    labels:
+    run_if_changed: '^e2e/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    spec:
+      containers:
+        - image: "nephio/e2e:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - |
+              set -eE; cd "$(git rev-parse --show-toplevel)/e2e/terraform"; trap 'terraform destroy -target module.gcp-ubuntu-focal -auto-approve' EXIT;
+              terraform init && timeout 120m terraform apply -target module.gcp-ubuntu-focal -var="fail_fast=true" -auto-approve
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+            - name: ssh-key-vol
+              mountPath: "/etc/ssh-key"
+          resources:
+            requests:
+              cpu: 2
+              memory: 2Gi
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+        - name: ssh-key-vol
+          secret:
+            secretName: ssh-key-e2e
+            defaultMode: 256
+            items:
+              - key: id_rsa
+                path: id_rsa
+              - key: id_rsa.pub
+                path: id_rsa.pub
+  - name: e2e-free5gc-fedora-34
+    annotations:
+    labels:
+    run_if_changed: '^e2e/'
+    skip_report: false
+    optional: true
+    decorate: true
+    cluster: default
+    spec:
+      containers:
+        - image: "nephio/e2e:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - |
+              set -eE; cd "$(git rev-parse --show-toplevel)/e2e/terraform"; trap 'terraform destroy -target module.gcp-fedora-34 -auto-approve' EXIT;
+              terraform init && timeout 120m terraform apply -target module.gcp-fedora-34 -var="fail_fast=true" -auto-approve
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+            - name: ssh-key-vol
+              mountPath: "/etc/ssh-key"
+          resources:
+            requests:
+              cpu: 2
+              memory: 2Gi
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+        - name: ssh-key-vol
+          secret:
+            secretName: ssh-key-e2e
+            defaultMode: 256
+            items:
+              - key: id_rsa
+                path: id_rsa
+              - key: id_rsa.pub
+                path: id_rsa.pub
+  - name: e2e-oai-ubuntu-jammy
+    annotations:
+    labels:
+    run_if_changed: '^e2e/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    spec:
+      containers:
+        - image: "nephio/e2e:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - |
+              set -eE; cd "$(git rev-parse --show-toplevel)/e2e/terraform"; trap 'terraform destroy -target module.gcp-ubuntu-jammy -auto-approve' EXIT;
+              terraform init && timeout 120m terraform apply -target module.gcp-ubuntu-jammy -var="e2e_type=oai" -var="fail_fast=true" -auto-approve
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+            - name: ssh-key-vol
+              mountPath: "/etc/ssh-key"
+          resources:
+            requests:
+              cpu: 2
+              memory: 2Gi
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+        - name: ssh-key-vol
+          secret:
+            secretName: ssh-key-e2e
+            defaultMode: 256
+            items:
+              - key: id_rsa
+                path: id_rsa
+              - key: id_rsa.pub
+                path: id_rsa.pub
+  - name: e2e-oai-fedora-34
+    annotations:
+    labels:
+    run_if_changed: '^e2e/'
+    skip_report: false
+    optional: true
+    decorate: true
+    cluster: default
+    spec:
+      containers:
+        - image: "nephio/e2e:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - |
+              set -eE; cd "$(git rev-parse --show-toplevel)/e2e/terraform"; trap 'terraform destroy -target module.gcp-fedora-34 -auto-approve' EXIT;
+              terraform init && timeout 120m terraform apply -target module.gcp-fedora-34 -var="e2e_type=oai" -var="fail_fast=true" -auto-approve
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+            - name: ssh-key-vol
+              mountPath: "/etc/ssh-key"
+          resources:
+            requests:
+              cpu: 2
+              memory: 2Gi
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+        - name: ssh-key-vol
+          secret:
+            secretName: ssh-key-e2e
+            defaultMode: 256
+            items:
+              - key: id_rsa
+                path: id_rsa
+              - key: id_rsa.pub
+                path: id_rsa.pub
+postsubmits:
+  - name: build-push-image-gotests
+    cluster: default
+    run_if_changed: 'images/gotests/.*'
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD}/images/gotests \
+            --dockerfile=Dockerfile --destination=nephio/gotests:${BUILD_ID} \
+            --destination=nephio/gotests:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 2
+            memory: 2Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-e2e
+    cluster: default
+    run_if_changed: 'images/e2e/.*'
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD}/images/e2e \
+            --dockerfile=Dockerfile --destination=nephio/e2e:${BUILD_ID} \
+            --destination=nephio/e2e:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 2
+            memory: 2Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-label_sync
+    cluster: default
+    run_if_changed: 'images/label_sync/.*'
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD}/images/label_sync \
+            --dockerfile=Dockerfile --destination=nephio/label_sync:${BUILD_ID} \
+            --destination=nephio/label_sync:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 2
+            memory: 2Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-generic-autobumper
+    cluster: default
+    run_if_changed: 'images/generic-autobumper/.*'
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD}/images/label_sync \
+            --dockerfile=Dockerfile --destination=nephio/generic-autobumper:${BUILD_ID} \
+            --destination=nephio/generic-autobumper:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 2
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-releaser
+    cluster: default
+    run_if_changed: 'images/releaser/.*'
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD}/images/releaser \
+            --dockerfile=Dockerfile --destination=nephio/releaser:${BUILD_ID} \
+            --destination=nephio/releaser:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 2
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+  - name: build-push-image-linter
+    cluster: default
+    run_if_changed: 'images/linter/.*'
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD}/images/linter \
+            --dockerfile=Dockerfile --destination=nephio/linter:${BUILD_ID} \
+            --destination=nephio/linter:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-molecule
+    cluster: default
+    run_if_changed: 'images/molecule/.*'
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD}/images/molecule \
+            --dockerfile=Dockerfile --destination=nephio/molecule:${BUILD_ID} \
+            --destination=nephio/molecule:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+

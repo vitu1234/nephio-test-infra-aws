@@ -1,0 +1,36 @@
+---
+# SPDX-license-identifier: Apache-2.0
+##############################################################################
+# Copyright (c) 2023 The Nephio Authors.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+
+- name: Define Hardware requirements
+  ansible.builtin.set_fact:
+    host_min_vcpu: lookup('ansible.builtin.env', 'RUN_E2E', default=false) | ternary(host_reqs.end_to_end.vcpu, host_reqs.sandbox.vcpu)
+    host_min_cpu_ram: lookup('ansible.builtin.env', 'RUN_E2E', default=false) | ternary(host_reqs.end_to_end.memory, host_reqs.sandbox.memory)
+
+- name: Checking host has minimum number of CPUS
+  ansible.builtin.assert:
+    that: ansible_facts.processor_vcpus >= host_min_vcpu | int
+    fail_msg: >-
+      Host does not have the minimum number of vCPUs - {{ ansible_facts.processor_vcpus }}.
+      Minimum required CPUs - {{ host_min_vcpu }}
+
+- name: Checking host has minimum RAM
+  ansible.builtin.assert:
+    that: (ansible_facts.memtotal_mb / 1024) >= host_min_cpu_ram | int
+    fail_msg: >-
+      Host does not have enough RAM - {{ ansible_facts.memtotal_mb / 1024 }} GB.
+      Minimum required RAM - {{ host_min_cpu_ram }} GB
+
+- name: Checking host has minimal kernel version
+  ansible.builtin.assert:
+    that: >-
+      ansible_kernel.split('-')[0] is version('5.0.0', '>=')
+    fail_msg: >-
+      Host has {{ ansible_kernel }} Kernel version which doesn't meet the gtp5g
+      module requirements - For more information the website (https://github.com/free5gc/gtp5g#notice)

@@ -1,0 +1,73 @@
+---
+# tasks file for ec2
+- name: Installing boto & boto3 on local system
+  pip:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ python_pkgs }}"
+
+- name: Creating Security Group for K8s Cluster
+  amazon.aws.ec2_security_group:
+    name: "{{ sg_name }}"
+    description: Security Group for allowing all port
+    region: "{{ region_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    vpc_id: "{{ vpc_id }}"
+    rules:
+    - proto: tcp
+      ports:
+        - 22
+      cidr_ip: 0.0.0.0/0
+      rule_desc: allow all on ssh port
+    - proto: all
+      cidr_ip: 0.0.0.0/0
+    rules_egress:
+    - proto: all
+      cidr_ip: 0.0.0.0/0
+
+- name: Launching three EC2 instances on AWS
+  amazon.aws.ec2_instance:
+    # name: "public-compute-instance2"
+    key_name: "{{ keypair }}"
+    vpc_subnet_id: "{{ subnet_name }}"
+    instance_type: "{{ instance_flavour }}"
+    security_group: "{{ sg_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    region: "{{ region_name }}"
+    network:
+      assign_public_ip: true
+    image_id: "{{ ami_id }}"
+    tags:
+      Name: "{{ item }}"
+  register: ec2
+  loop: "{{ instance_tag }}"
+
+# - debug:
+#     msg: "{{ ec2 }}"
+- name: Set ec2 facts
+  set_fact:
+    public_dns_name: "{{ ec2.results[0].instances[0].public_dns_name }}"
+          
+- name: Add 1st instance to host group ec2_master
+  add_host:
+    hostname: "{{ ec2.results[0].instances[0].public_ip_address }}"
+    groupname: ec2_master
+
+- name: Add 2nd instance to host group ec2_slave
+  add_host:
+    hostname: "{{ ec2.results[1].instances[0].public_ip_address }}"
+    groupname: ec2_slave
+
+- name: Add 3rd instance to host group ec2_slave
+  add_host:
+    hostname: "{{ ec2.results[2].instances[0].public_ip_address }}"
+    groupname: ec2_slave
+
+- name: Wait for SSH to come up
+  wait_for:
+    host: "{{ ec2.results[2].instances[0].public_dns_name }}"
+    port: 22
+    state: started
+  delegate_to: localhost

@@ -1,0 +1,124 @@
+# frozen_string_literal: true
+
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+##############################################################################
+# Copyright (c) 2023 The Nephio Authors.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+
+require 'yaml'
+
+vagrant_root = File.dirname(__FILE__)
+vagrant_boxes = YAML.load_file("#{vagrant_root}/distros_supported.yml")
+os_distro = ENV['OS_DISTRO'] || 'ubuntu_focal'
+box = vagrant_boxes[os_distro]
+num_sandboxes = ENV['NUM_SANDBOXES'] || '1'
+
+# rubocop:disable Metrics/BlockLength
+Vagrant.configure('2') do |config|
+  # rubocop:enable Metrics/BlockLength
+  config.vm.provider :libvirt
+  config.vm.provider :virtualbox
+  config.vm.provider :google
+
+  (1..num_sandboxes.to_i).each do |i|
+    config.vm.define "sandbox#{i.to_s.rjust(2, '0')}" do |nodeconfig|
+      nodeconfig.vm.hostname = "sandbox#{i.to_s.rjust(2, '0')}"
+    end
+  end
+  config.vm.box = box['name']
+  config.vm.box_check_update = false
+  config.vm.synced_folder "#{vagrant_root}/../../", '/opt/test-infra'
+
+  config.vm.network 'forwarded_port', guest: 7007, guest_ip: '172.18.0.201', host: 7007
+  config.vm.network 'forwarded_port', guest: 3000, guest_ip: '172.18.0.200', host: 3000
+
+  # Upgrade Kernel version
+  config.vm.provision 'shell', inline: <<-SHELL
+    ! command -v dnf > /dev/null || sudo dnf update kernel-core -y
+  SHELL
+  config.vm.provision :reload if box.fetch('reload', false)
+
+  # Initial setup
+  config.vm.provision 'shell', privileged: false, inline: <<-SHELL
+    if [ -f /etc/netplan/01-netcfg.yaml ] && ! grep -q '1.1.1.1, 8.8.8.8, 8.8.4.4' /etc/netplan/01-netcfg.yaml; then
+        sudo sed -i "s/addresses: .*/addresses: [1.1.1.1, 8.8.8.8, 8.8.4.4]/g" /etc/netplan/01-netcfg.yaml
+        sudo netplan apply
+    fi
+  SHELL
+
+  # Provision test bed
+  config.vm.provision 'shell', privileged: true do |sh|
+    sh.env = {
+      NEPHIO_DEBUG: ENV.fetch('NEPHIO_DEBUG', true),
+      NEPHIO_RUN_E2E: ENV.fetch('NEPHIO_RUN_E2E', false),
+      NEPHIO_USER: ENV.fetch('NEPHIO_USER', 'vagrant'),
+      NEPHIO_REPO_DIR: '/opt/test-infra',
+      ANSIBLE_CMD_EXTRA_VAR_LIST: "k8s.context='kind-kind' nephio_catalog_repo_uri='#{ENV['NEPHIO_CATALOG_REPO_URI'] || 'https://github.com/nephio-project/nephio-catalog-packages.git'}'",
+      E2EDIR: '/opt/test-infra/e2e',
+      FAIL_FAST: true,
+      E2ETYPE: ENV.fetch('E2ETYPE', 'free5gc')
+    }
+    sh.inline = <<-SHELL
+      set -o errexit
+      set -o pipefail
+
+      cd /opt/test-infra/e2e/provision/
+      ./init.sh | tee ~/init.log
+    SHELL
+  end
+
+  %i[virtualbox libvirt].each do |provider|
+    config.vm.provider provider do |p|
+      p.cpus = ENV['CPUS'] || 8
+      p.memory = ENV['MEMORY'] || 32 * 1024
+    end
+  end
+
+  config.vm.provider 'virtualbox' do |v|
+    v.gui = false
+    v.customize ['modifyvm', :id, '--nictype1', 'virtio', '--cableconnected1', 'on']
+    # Enable nested paging for memory management in hardware
+    v.customize ['modifyvm', :id, '--nestedpaging', 'on']
+    # Use large pages to reduce Translation Lookaside Buffers usage
+    v.customize ['modifyvm', :id, '--largepages', 'on']
+    # Use virtual processor identifiers  to accelerate context switching
+    v.customize ['modifyvm', :id, '--vtxvpid', 'on']
+  end
+
+  config.vm.provider :libvirt do |v, override|
+    override.vm.synced_folder "#{vagrant_root}/../../", '/opt/test-infra', type: 'nfs',
+                                                                           nfs_version: ENV.fetch('VAGRANT_NFS_VERSION', 3)
+    v.memorybacking :access, mode: 'shared'
+    v.random_hostname = true
+    v.management_network_address = '10.0.2.0/24'
+    v.management_network_name = 'administration'
+    v.cpu_mode = 'host-passthrough'
+  end
+
+  config.vm.provider :google do |v, override|
+    v.google_project_id = ENV['GOOGLE_PROJECT_ID']
+    v.google_json_key_location = ENV.fetch('GOOGLE_JSON_KEY_LOCATION',
+                                           '~/.config/gcloud/application_default_credentials.json')
+    v.image_project_id = box['project_id']
+    v.image_family = box['family']
+    v.machine_type = 'e2-standard-16'
+    v.disk_size = 200
+    v.name = "sandbox-vm-#{[*('a'..'z')].sample(6).join}"
+
+    override.vm.box = 'google/gce'
+    override.ssh.username = ENV['USER']
+    override.ssh.private_key_path = '~/.ssh/id_rsa'
+  end
+
+  if !ENV['http_proxy'].nil? && !ENV['https_proxy'].nil? && Vagrant.has_plugin?('vagrant-proxyconf')
+    config.proxy.http = ENV['http_proxy'] || ENV['HTTP_PROXY'] || ''
+    config.proxy.https    = ENV['https_proxy'] || ENV['HTTPS_PROXY'] || ''
+    config.proxy.no_proxy = no_proxy
+    config.proxy.enabled = { docker: false }
+  end
+end

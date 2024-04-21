@@ -1,0 +1,49 @@
+---
+# SPDX-license-identifier: Apache-2.0
+##############################################################################
+# Copyright (c) 2023 The Nephio Authors.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+
+- name: Boostrap servers
+  hosts: all
+  pre_tasks:
+    - name: Update Apt cache
+      ansible.builtin.raw: apt-get update --allow-releaseinfo-change
+      become: true
+      changed_when: false
+      when: ansible_distribution == 'Ubuntu'
+    - name: Install pip package
+      become: true
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
+      when: ansible_distribution == 'Ubuntu'
+    - name: Install kubernetes python package
+      become: true
+      ansible.builtin.pip:
+        name: kubernetes==26.1.0
+  roles:
+    - role: andrewrothstein.kind
+      vars:
+        kind_config:
+          sysctl:
+            fs.inotify.max_user_watches: 524288
+            fs.inotify.max_user_instances: 512
+            kernel.keys.maxkeys: 500000
+            kernel.keys.maxbytes: 1000000
+    - andrewrothstein.kubectl
+    - role: andrewrothstein.docker_engine
+      become: true
+  tasks:
+    - name: Unarchive /tmp/kpt.tgz into /usr/local/bin/
+      become: true
+      become_user: root
+      ansible.builtin.unarchive:
+        remote_src: true
+        src: https://github.com/GoogleContainerTools/kpt/releases/download/v1.0.0-beta.49/kpt_linux_amd64-1.0.0-beta.49.tar.gz
+        dest: /usr/local/bin/
+        creates: /usr/local/bin/kpt

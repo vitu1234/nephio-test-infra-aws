@@ -1,0 +1,1643 @@
+prowjob_namespace: prow
+pod_namespace: test-pods
+
+in_repo_config:
+  enabled:
+    nephio-project/nephio-test-prow-project: true
+    nephio-project/test-infra: true
+    nephio-project/nephio: true
+    nephio-project/api: true
+    nephio-project/nephio-example-packages: true
+    nephio-project/nephio-packages: true
+    nephio-project/docs: true
+    nephio-project/free5gc-packages: true
+    nephio-project/free5gc: true
+    nephio-project/edge-status-aggregator: true
+    nephio-project/kpt-backstage-plugins: true
+    nephio-project/oai: true
+    nephio-project/porch: true
+    nephio-experimental: true
+  allowed_clusters:
+    "*": ["default"]
+
+deck:
+ spyglass:
+   gcs_browser_prefix: http://gcsweb.nephio.io/gcs/
+   lenses:
+   - lens:
+       name: metadata
+     required_files:
+     - started.json|finished.json
+   - lens:
+       config:
+       name: buildlog
+     required_files:
+     - build-log.txt
+   - lens:
+       name: junit
+     required_files:
+     - .*/junit.*\.xml
+   - lens:
+       name: podinfo
+     required_files:
+     - podinfo.json
+
+plank:
+  job_url_prefix_config:
+    "*": http://prow.nephio.io/view/
+  report_templates:
+    '*': >-
+        [Full PR test history](http://prow.nephio.io/pr-history?org={{.Spec.Refs.Org}}&repo={{.Spec.Refs.Repo}}&pr={{with index .Spec.Refs.Pulls 0}}{{.Number}}{{end}}).
+        [Your PR dashboard](http://prow.nephio.io/pr?query=is:pr+state:open+author:{{with
+        index .Spec.Refs.Pulls 0}}{{.Author}}{{end}}).
+  default_decoration_configs:
+    "*":
+      gcs_configuration:
+        bucket: gs://prow-nephio-sig-release
+        path_strategy: explicit
+      gcs_credentials_secret: gcs-credentials
+      utility_images:
+        clonerefs: gcr.io/k8s-prow/clonerefs:v20221208-8898931a7f
+        entrypoint: gcr.io/k8s-prow/entrypoint:v20221208-8898931a7f
+        initupload: gcr.io/k8s-prow/initupload:v20221208-8898931a7f
+        sidecar: gcr.io/k8s-prow/sidecar:v20221208-8898931a7f
+
+tide:
+  queries:
+  - labels:
+    - lgtm
+    - approved
+    missingLabels:
+    - needs-rebase
+    - do-not-merge/hold
+    - do-not-merge/work-in-progress
+    - do-not-merge/invalid-owners-file
+    orgs:
+    - nephio-project
+  merge_method:
+    nephio-project/nephio-test-prow-project: squash
+    nephio-project/test-infra: squash
+    nephio-project/nephio: squash
+    nephio-project/api: squash
+    nephio-project/nephio-example-packages: squash
+    nephio-project/nephio-packages: squash
+    nephio-project/docs: squash
+    nephio-project/free5gc-packages: squash
+    nephio-project/free5gc: squash
+    nephio-project/edge-status-aggregator: squash
+    nephio-experimental: squash
+
+decorate_all_jobs: true
+postsubmits:
+  nephio-project/free5gc:
+  - name: build-push-image-free5gc-operator-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=Dockerfile --destination=nephio/free5gc-operator:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  
+  - name: build-push-image-free5gc-operator-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=Dockerfile --destination=nephio/free5gc-operator:${BUILD_ID} \
+            --destination=nephio/free5gc-operator:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+
+  nephio-project/kpt-backstage-plugins:
+  - name: build-push-image-kbp-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=Dockerfile --destination=nephio/kpt-backstage-plugins:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  
+  - name: build-push-image-kbp-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=Dockerfile --destination=nephio/kpt-backstage-plugins:${BUILD_ID} \
+            --destination=nephio/kpt-backstage-plugins:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+  nephio-project/nephio:
+  - name: build-push-image-ueransim-deploy-fn-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/ueransim-deploy-fn/Dockerfile --destination=nephio/ueransim-deploy-fn:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-ueransim-deploy-fn-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/ueransim-deploy-fn/Dockerfile --destination=nephio/ueransim-deploy-fn:${BUILD_ID} \
+            --destination=nephio/ueransim-deploy-fn:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+  - name: build-push-image-configinject-fn-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/configinject-fn/Dockerfile --destination=nephio/configinject-fn:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-configinject-fn-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/configinject-fn/Dockerfile --destination=nephio/configinject-fn:${BUILD_ID} \
+            --destination=nephio/configinject-fn:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+  - name: build-push-image-dnn-fn-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/dnn-fn/Dockerfile --destination=nephio/dnn-fn:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-dnn-fn-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/dnn-fn/Dockerfile --destination=nephio/dnn-fn:${BUILD_ID} \
+            --destination=nephio/dnn-fn:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+  - name: build-push-image-gen-cmap-fn-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/gen-configmap-fn/Dockerfile --destination=nephio/gen-configmap-fn:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-gen-cmap-fn-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/gen-configmap-fn/Dockerfile --destination=nephio/gen-configmap-fn:${BUILD_ID} \
+            --destination=nephio/gen-configmap-fn:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+  - name: build-push-image-interface-fn-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/interface-fn/Dockerfile --destination=nephio/interface-fn:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-interface-fn-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/interface-fn/Dockerfile --destination=nephio/interface-fn:${BUILD_ID} \
+            --destination=nephio/interface-fn:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+
+  - name: build-push-image-ipam-fn-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/ipam-fn/Dockerfile --destination=nephio/ipam-fn:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-ipam-fn-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/ipam-fn/Dockerfile --destination=nephio/ipam-fn:${BUILD_ID} \
+            --destination=nephio/ipam-fn:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+
+  - name: build-push-image-nad-fn-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/nad-fn/Dockerfile --destination=nephio/nad-fn:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-nad-fn-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/nad-fn/Dockerfile --destination=nephio/nad-fn:${BUILD_ID} \
+            --destination=nephio/nad-fn:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+
+  - name: build-push-image-nfdeployfn-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/nfdeploy-fn/Dockerfile --destination=nephio/nfdeploy-fn:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-nfdeployfn-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/nfdeploy-fn/Dockerfile --destination=nephio/nfdeploy-fn:${BUILD_ID} \
+            --destination=nephio/nfdeploy-fn:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+
+  - name: build-push-image-vlan-fn-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/vlan-fn/Dockerfile --destination=nephio/vlan-fn:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-vlan-fn-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=krm-functions/vlan-fn/Dockerfile --destination=nephio/vlan-fn:${BUILD_ID} \
+            --destination=nephio/vlan-fn:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+  - name: build-push-image-nephio-operator-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=operators/nephio-controller-manager/Dockerfile --destination=nephio/nephio-operator:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-nephio-operator-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD} \
+            --dockerfile=operators/nephio-controller-manager/Dockerfile --destination=nephio/nephio-operator:${BUILD_ID} \
+            --destination=nephio/nephio-operator:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+  nephio-project/oai:
+  - name: build-push-image-oai-release-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub when release tag is created
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD}/ \
+            --dockerfile=Dockerfile --destination=nephio/oai-ran-controller:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  - name: build-push-image-oai-commit-conf
+    cluster: default
+    always_run: true
+    branches:
+    - "main"
+    annotations:
+      description: Build and Push Image to DockerHub every commit
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 0
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=${PWD}/ \
+            --dockerfile=Dockerfile --destination=nephio/oai-ran-controller:${BUILD_ID} \
+            --destination=nephio/oai-ran-controller:latest
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+  
+  nephio-project/porch:
+  - name: build-push-porch-server-image
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 1
+    extra_refs:
+    - org: nephio-project
+      repo: porch
+      base_ref: main
+      path_alias: "porch_build/porch"
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=/home/prow/go/src/porch_build/ --dockerfile=porch/build/Dockerfile --destination=nephio/porch-server:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+
+  - name: build-push-porch-controllers-image
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 1
+    extra_refs:
+    - org: nephio-project
+      repo: porch
+      base_ref: main
+      path_alias: "porch_build/porch"
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=/home/prow/go/src/porch_build/ --dockerfile=porch/controllers/Dockerfile --destination=nephio/porch-controllers:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+
+  - name: build-push-porch-function-runner-image
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 1
+    extra_refs:
+    - org: nephio-project
+      repo: porch
+      base_ref: main
+      path_alias: "porch_build/porch"
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=/home/prow/go/src/porch_build/ --dockerfile=porch/func/Dockerfile --destination=nephio/porch-function-runner:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+
+  - name: build-push-porch-wrapper-server-image
+    cluster: default
+    always_run: true
+    branches:
+    - "^v.*$"
+    annotations:
+      description: Build and Push Image to DockerHub
+    decorate: true
+    decoration_config:
+      censor_secrets: true
+    max_concurrency: 1
+    extra_refs:
+    - org: nephio-project
+      repo: porch
+      base_ref: main
+      path_alias: "porch_build/porch"
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          executor --context=/home/prow/go/src/porch_build/ --dockerfile=porch/func/Dockerfile-wrapperserver --destination=nephio/porch-wrapper-server:${PULL_BASE_REF}
+        volumeMounts:
+          - name: kaniko-secret
+            mountPath: /kaniko/.docker/
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+
+
+
+presubmits:
+  nephio-project/nephio-test-prow-project:
+  - name: test-presubmit
+    decorate: true
+    always_run: true
+    spec:
+      containers:
+        - image: alpine
+          command:
+            - /bin/printenv
+  nephio-project/test-infra:
+  - name: presubmit-test-infra-inrepoconfig-validation
+    annotations:
+    labels:
+    run_if_changed: '.prow.yaml|.prow/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    spec:
+      containers:
+        - image: "gcr.io/k8s-prow/checkconfig:v20221208-8898931a7f"
+          command:
+            - "checkconfig"
+          args:
+            - "--plugin-config=../test-infra/prow/config/plugins.yaml"
+            - "--config-path=../test-infra/prow/config/config.yaml"
+            - "--prow-yaml-repo-name=$(REPO_OWNER)/$(REPO_NAME)"
+  nephio-project/nephio:
+  - name: presubmit-test-nephio-inrepoconfig-validation
+    annotations:
+    labels:
+    run_if_changed: '.prow.yaml|.prow/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        path_alias: github.com/nephio-project/test-infra
+        base_ref: main
+    spec:
+      containers:
+        - image: "gcr.io/k8s-prow/checkconfig:v20221208-8898931a7f"
+          command:
+            - "checkconfig"
+          args:
+            - "--plugin-config=../test-infra/prow/config/plugins.yaml"
+            - "--config-path=../test-infra/prow/config/config.yaml"
+            - "--prow-yaml-repo-name=$(REPO_OWNER)/$(REPO_NAME)"
+  nephio-project/api:
+  - name: presubmit-test-api-inrepoconfig-validation
+    annotations:
+    labels:
+    run_if_changed: '.prow.yaml|.prow/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        path_alias: github.com/nephio-project/test-infra
+        base_ref: main
+    spec:
+      containers:
+        - image: "gcr.io/k8s-prow/checkconfig:v20221208-8898931a7f"
+          command:
+            - "checkconfig"
+          args:
+            - "--plugin-config=../test-infra/prow/config/plugins.yaml"
+            - "--config-path=../test-infra/prow/config/config.yaml"
+            - "--prow-yaml-repo-name=$(REPO_OWNER)/$(REPO_NAME)"
+  nephio-project/nephio-example-packages:
+  - name: presubmit-test-nephio-ex-packages-inrepoconfig-validation
+    annotations:
+    labels:
+    run_if_changed: '.prow.yaml|.prow/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        path_alias: github.com/nephio-project/test-infra
+        base_ref: main
+    spec:
+      containers:
+        - image: "gcr.io/k8s-prow/checkconfig:v20221208-8898931a7f"
+          command:
+            - "checkconfig"
+          args:
+            - "--plugin-config=../test-infra/prow/config/plugins.yaml"
+            - "--config-path=../test-infra/prow/config/config.yaml"
+            - "--prow-yaml-repo-name=$(REPO_OWNER)/$(REPO_NAME)"
+  nephio-project/nephio-packages:
+  - name: presubmit-test-nephio-packages-inrepoconfig-validation
+    annotations:
+    labels:
+    run_if_changed: '.prow.yaml|.prow/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        path_alias: github.com/nephio-project/test-infra
+        base_ref: main
+    spec:
+      containers:
+        - image: "gcr.io/k8s-prow/checkconfig:v20221208-8898931a7f"
+          command:
+            - "checkconfig"
+          args:
+            - "--plugin-config=../test-infra/prow/config/plugins.yaml"
+            - "--config-path=../test-infra/prow/config/config.yaml"
+            - "--prow-yaml-repo-name=$(REPO_OWNER)/$(REPO_NAME)"
+  nephio-project/docs:
+  - name: presubmit-test-docs-inrepoconfig-validation
+    annotations:
+    labels:
+    run_if_changed: '.prow.yaml|.prow/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        path_alias: github.com/nephio-project/test-infra
+        base_ref: main
+    spec:
+      containers:
+        - image: "gcr.io/k8s-prow/checkconfig:v20221208-8898931a7f"
+          command:
+            - "checkconfig"
+          args:
+            - "--plugin-config=../test-infra/prow/config/plugins.yaml"
+            - "--config-path=../test-infra/prow/config/config.yaml"
+            - "--prow-yaml-repo-name=$(REPO_OWNER)/$(REPO_NAME)"
+  nephio-project/free5gc-packages:
+  - name: presubmit-test-free5gc-packages-inrepoconfig-validation
+    annotations:
+    labels:
+    run_if_changed: '.prow.yaml|.prow/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        path_alias: github.com/nephio-project/test-infra
+        base_ref: main
+    spec:
+      containers:
+        - image: "gcr.io/k8s-prow/checkconfig:v20221208-8898931a7f"
+          command:
+            - "checkconfig"
+          args:
+            - "--plugin-config=../test-infra/prow/config/plugins.yaml"
+            - "--config-path=../test-infra/prow/config/config.yaml"
+            - "--prow-yaml-repo-name=$(REPO_OWNER)/$(REPO_NAME)"
+  nephio-project/free5gc:
+  - name: presubmit-test-free5gc-inrepoconfig-validation
+    annotations:
+    labels:
+    run_if_changed: '.prow.yaml|.prow/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        path_alias: github.com/nephio-project/test-infra
+        base_ref: main
+    spec:
+      containers:
+        - image: "gcr.io/k8s-prow/checkconfig:v20221208-8898931a7f"
+          command:
+            - "checkconfig"
+          args:
+            - "--plugin-config=../test-infra/prow/config/plugins.yaml"
+            - "--config-path=../test-infra/prow/config/config.yaml"
+            - "--prow-yaml-repo-name=$(REPO_OWNER)/$(REPO_NAME)"
+  nephio-project/kpt-backstage-plugins:
+  - name: presubmit-test-kbp-inrepoconfig-validation
+    annotations:
+    labels:
+    run_if_changed: '.prow.yaml|.prow/'
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        path_alias: github.com/nephio-project/test-infra
+        base_ref: main
+    spec:
+      containers:
+        - image: "gcr.io/k8s-prow/checkconfig:v20221208-8898931a7f"
+          command:
+            - "checkconfig"
+          args:
+            - "--plugin-config=../test-infra/prow/config/plugins.yaml"
+            - "--config-path=../test-infra/prow/config/config.yaml"
+            - "--prow-yaml-repo-name=$(REPO_OWNER)/$(REPO_NAME)"
+
+periodics:
+  - name: e2e-daily-ubuntu-focal-free5gc
+    annotations:
+    labels:
+    cron: "0 15 * * 1-6"
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        base_ref: main
+        path_alias: nephio_repo/test-infra
+    spec:
+      containers:
+        - image: "nephio/e2e:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - |
+              set -eE; cd "$GOPATH/src/nephio_repo/test-infra/e2e/terraform"; trap 'terraform destroy -target module.gcp-ubuntu-focal -auto-approve' EXIT;
+              terraform init && timeout 120m terraform apply -target module.gcp-ubuntu-focal -auto-approve
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+            - name: ssh-key-vol
+              mountPath: "/etc/ssh-key"
+          resources:
+            requests:
+              cpu: 2
+              memory: 2Gi
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+        - name: ssh-key-vol
+          secret:
+            secretName: ssh-key-e2e
+            defaultMode: 256
+            items:
+              - key: id_rsa
+                path: id_rsa
+              - key: id_rsa.pub
+                path: id_rsa.pub
+  - name: e2e-daily-fedora-34-free5gc
+    annotations:
+    labels:
+    cron: "0 15 * * 1-6"
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        base_ref: main
+        path_alias: nephio_repo/test-infra
+    spec:
+      containers:
+        - image: "nephio/e2e:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - |
+              set -eE; cd "$GOPATH/src/nephio_repo/test-infra/e2e/terraform"; trap 'terraform destroy -target module.gcp-fedora-34 -auto-approve' EXIT;
+              terraform init && timeout 120m terraform apply -target module.gcp-fedora-34 -auto-approve
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+            - name: ssh-key-vol
+              mountPath: "/etc/ssh-key"
+          resources:
+            requests:
+              cpu: 2
+              memory: 2Gi
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+        - name: ssh-key-vol
+          secret:
+            secretName: ssh-key-e2e
+            defaultMode: 256
+            items:
+              - key: id_rsa
+                path: id_rsa
+              - key: id_rsa.pub
+                path: id_rsa.pub
+  - name: e2e-daily-ubuntu-jammy-oai
+    annotations:
+    labels:
+    cron: "0 15 * * 1-6"
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        base_ref: main
+        path_alias: nephio_repo/test-infra
+    spec:
+      containers:
+        - image: "nephio/e2e:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - |
+              set -eE; cd "$GOPATH/src/nephio_repo/test-infra/e2e/terraform"; trap 'terraform destroy -target module.gcp-ubuntu-jammy -auto-approve' EXIT;
+              terraform init && timeout 120m terraform apply -target module.gcp-ubuntu-jammy -var="e2e_type=oai" -auto-approve
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+            - name: ssh-key-vol
+              mountPath: "/etc/ssh-key"
+          resources:
+            requests:
+              cpu: 2
+              memory: 2Gi
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+        - name: ssh-key-vol
+          secret:
+            secretName: ssh-key-e2e
+            defaultMode: 256
+            items:
+              - key: id_rsa
+                path: id_rsa
+              - key: id_rsa.pub
+                path: id_rsa.pub
+  - name: pre-bake-daily-ubuntu-jammy
+    annotations:
+    labels:
+    cron: "0 15 * * 1-6"
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        base_ref: main
+        path_alias: nephio_repo/test-infra
+    spec:
+      containers:
+        - image: "hashicorp/packer:1.10"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - |
+              set -eE; cd "$GOPATH/src/nephio_repo/test-infra/e2e/packer/gcp"; packer init . && packer build .
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+            - name: ssh-key-vol
+              mountPath: "/etc/ssh-key"
+          resources:
+            requests:
+              cpu: 2
+              memory: 2Gi
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+        - name: ssh-key-vol
+          secret:
+            secretName: ssh-key-e2e
+            defaultMode: 256
+            items:
+              - key: id_rsa
+                path: id_rsa
+              - key: id_rsa.pub
+                path: id_rsa.pub
+  - name: e2e-daily-oai-fedora-34
+    annotations:
+    labels:
+    cron: "0 15 * * 1-6"
+    skip_report: false
+    decorate: true
+    cluster: default
+    extra_refs:
+      - org: nephio-project
+        repo: test-infra
+        base_ref: main
+        path_alias: nephio_repo/test-infra
+    spec:
+      containers:
+        - image: "nephio/e2e:latest"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - |
+              set -eE; cd "$GOPATH/src/nephio_repo/test-infra/e2e/terraform"; trap 'terraform destroy -target module.gcp-fedora-34 -auto-approve' EXIT;
+              terraform init && timeout 120m terraform apply -target module.gcp-fedora-34 -var="e2e_type=oai" -auto-approve
+          volumeMounts:
+            - name: satoken
+              mountPath: "/etc/satoken"
+            - name: ssh-key-vol
+              mountPath: "/etc/ssh-key"
+          resources:
+            requests:
+              cpu: 2
+              memory: 2Gi
+      volumes:
+        - name: satoken
+          secret:
+            secretName: satoken
+            items:
+              - key: satoken
+                path: satoken
+        - name: ssh-key-vol
+          secret:
+            secretName: ssh-key-e2e
+            defaultMode: 256
+            items:
+              - key: id_rsa
+                path: id_rsa
+              - key: id_rsa.pub
+                path: id_rsa.pub

@@ -1,0 +1,19 @@
+---
+# vars file for ec2
+
+instance_tag:
+        - master
+        - slave1
+        - slave2
+
+python_pkgs:
+        - boto
+        - boto3
+
+sg_name: Allow_All_SG
+region_name: ap-northeast-2 
+subnet_name: subnet-0132f2a2bc7a34c0d
+ami_id: ami-09a7535106fbd42d5
+vpc_id: vpc-0fedfa9bd7f06957b
+keypair: nephio3
+instance_flavour: t2.medium
