@@ -25,6 +25,8 @@
 
 - hosts: ec2_master
   gather_facts: no
+  vars_files:
+     - mgmt.yml
   tasks:
     - name: Running K8s Master Nephio Bootstrap
       ansible.builtin.include_tasks: cluster.yml
