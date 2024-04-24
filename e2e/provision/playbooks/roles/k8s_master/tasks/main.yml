@@ -195,3 +195,6 @@
     mode: "0666"
     owner: "root"
     group: "docker"
+
+# - name: Deploying local path provisioner
+#   command: kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.26/deploy/local-path-storage.yaml

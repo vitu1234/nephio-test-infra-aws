@@ -1,2 +1,5 @@
 ---
 # defaults file for k8s_master
+k8s:
+  context: kubernetes-admin@kubernetes
+  version: v1.29.2
