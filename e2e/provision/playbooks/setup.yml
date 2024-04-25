@@ -26,6 +26,20 @@
 - hosts: ec2_master
   gather_facts: no
   vars_files:
+    - cred.yml
+  environment:
+    AWS_REGION: ap-northeast-2
+    AWS_ACCESS_KEY_ID: ASIA5TRKJVUQ6G6LJCPU
+    AWS_SECRET_ACCESS_KEY: OZhgGArIwH2GpuQ7P3W/xsXAJJYbcGajlCKslvcf
+    AWS_SESSION_TOKEN: "IQoJb3JpZ2luX2VjEFgaDmFwLW5vcnRoZWFzdC0yIkcwRQIhAMm64HvGoyNvl7+BGIye0uMehZApa9SSh2+jScWaqOjWAiBoV/xS4cGL4jwfzXHijRxg/hs0F86QS8b7ISpp8hSTJSr4AQih//////////8BEAIaDDkzNTMxNzg0MzIzMyIMYsjRrjChtwKmhuSsKswBOG9h9tWGj3fs+z8ukYE69DzY5n4mPTKLC6EBZm4vihsAJRe+K5IFdo8SVtmtTYIJWBtw5SudzofaVInaSmXlNJ/qD7zAmcW67eqPmIHpuVoAXUTHRrWCHqNTnq7NhVzc7JV6/zoZjbnt6SIo8ioTJ9PdUC6CNjw3HbhpjGeJuWjvjyP0WBFAkfWLTIDFSfUIRzX6AL1Wxb7aOehAS0FamKJs3l9p+2o8Oq72ri8LhJZEyCvv5Ey5LbMMJ9THJpzhACRknuKG9donWtpDMI6bqLEGOpgBkRHxPvAhhUclW5R2ccgjVunXyh93Mel9uY4vBv44ZqZYyOGwKwE7eFJnYifhfColycPkwZFEfkDO7tdANkP+kl66yW8bG4ZYjFCeAISDt3vH3eDkJU1/HnITUQYKtrxrHJC7aadEcRvll2ooKEuStLUX6y5j+pCHTbymTopQelGoGINMjlNapb8JJ6ZiT61gUB85aP93yeY="
+  tasks:
+    - name: Running CAPA Role
+      include_role:
+        name: capa
+
+- hosts: ec2_master
+  gather_facts: no
+  vars_files:
      - mgmt.yml
   tasks:
     - name: Running K8s Master Nephio Bootstrap

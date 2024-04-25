@@ -1,0 +1,77 @@
+---
+# tasks file for capa
+
+
+- name: Check if AWS Region variable is set
+  shell: echo $AWS_REGION
+  register: aws_region
+  ignore_errors: true
+
+
+- name: Download clusterctl binary
+  become: yes
+  become_method: sudo
+  get_url:
+    url: https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.1/clusterctl-linux-amd64
+    dest: /tmp/clusterctl-linux-amd64
+    mode: '0755'
+
+- name: Move clusterctl binary to /usr/local/bin
+  become: yes
+  become_method: sudo
+  command: mv /tmp/clusterctl-linux-amd64 /usr/local/bin/clusterctl
+
+- name: Download clusterawsadm binary
+  become: yes
+  become_method: sudo
+  get_url:
+    url: https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/download/v2.4.2/clusterawsadm_v2.4.2_linux_amd64
+    dest: /tmp/clusterawsadm-linux-amd64
+    mode: '0755'
+
+- name: Move clusterawsadm binary to /usr/local/bin
+  become: yes
+  become_method: sudo
+  command: mv /tmp/clusterawsadm-linux-amd64 /usr/local/bin/clusterawsadm
+
+
+
+# - name: Set AWS environment variables
+#   become: yes
+#   become_method: sudo
+#   become_user: root
+#   shell: |
+#     export AWS_REGION="{{ aws_region }}"
+#     export AWS_ACCESS_KEY_ID="{{ aws_access_key }}"
+#     export AWS_SECRET_ACCESS_KEY="{{ aws_secret_key }}"
+#     export AWS_SESSION_TOKEN="{{ aws_session_token }}"
+
+- name: Encode credentials using clusterawsadm
+  become: yes
+  become_method: sudo
+  command: "clusterawsadm bootstrap credentials encode-as-profile"
+  environment:
+    AWS_REGION: "{{ aws_region }}"
+    AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"
+    AWS_SESSION_TOKEN: "{{ aws_session_token }}"
+  register: encoded_credentials_output
+
+- name: Export encoded credentials as environment variable
+  become: yes
+  become_method: sudo
+  lineinfile:
+    dest: /etc/environment
+    line: "AWS_B64ENCODED_CREDENTIALS={{ encoded_credentials_output.stdout }}"
+    create: yes
+
+- name: Debug AWS_B64ENCODED_CREDENTIALS
+  debug:
+    msg: "AWS_B64ENCODED_CREDENTIALS is {{ lookup('env', 'AWS_B64ENCODED_CREDENTIALS') }}"
+
+
+
+- name: Initialize management cluster
+  become: yes
+  become_method: sudo
+  shell: clusterctl init --infrastructure aws
