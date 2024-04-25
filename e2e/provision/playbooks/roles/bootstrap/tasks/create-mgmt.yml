@@ -69,26 +69,26 @@
 #     wait_condition:
 #       type: Ready
 #       status: true
-- name: Apply StorageClass manifest
-  kubernetes.core.k8s:
-    context: "{{ k8s.context }}"
-    state: present
-    definition:
-      apiVersion: storage.k8s.io/v1
-      kind: StorageClass
-      metadata:
-        name: ebs-sc
-        annotations:
-          storageclass.kubernetes.io/is-default-class: "true"
-      provisioner: ebs.csi.aws.com
-      # parameters:
-      #   type: gp2
-      #   fsType: ext4
-      # volumeBindingMode: WaitForFirstConsumer
-      allowedTopologies:
-        - matchLabelExpressions:
-          - key: failure-domain.beta.kubernetes.io/zone
-            values:
-              - ap-northeast-2  # Replace this with your availability zone
+# - name: Apply StorageClass manifest
+#   kubernetes.core.k8s:
+#     context: "{{ k8s.context }}"
+#     state: present
+#     definition:
+#       apiVersion: storage.k8s.io/v1
+#       kind: StorageClass
+#       metadata:
+#         name: ebs-sc
+#         annotations:
+#           storageclass.kubernetes.io/is-default-class: "true"
+#       provisioner: ebs.csi.aws.com
+#       # parameters:
+#       #   type: gp2
+#       #   fsType: ext4
+#       # volumeBindingMode: WaitForFirstConsumer
+#       allowedTopologies:
+#         - matchLabelExpressions:
+#           - key: failure-domain.beta.kubernetes.io/zone
+#             values:
+#               - ap-northeast-2  # Replace this with your availability zone
 - name: Create management cluster code
   command: kubectl get nodes

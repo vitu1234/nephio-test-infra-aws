@@ -29,7 +29,7 @@ k8s:
 # kind:
 #   enabled: true
 
-nephio_catalog_repo_uri: https://github.com/nephio-project/catalog.git
+nephio_catalog_repo_uri: https://github.com/vitu1234/catalog.git
 nephio_catalog_revision: v2.0.0
 
 gitea:
@@ -92,15 +92,15 @@ cluster_api:
         async: 900
         poll: 5
       - repo_uri: "{{ nephio_catalog_repo_uri }}"
-        pkg: infra/capi/cluster-capi-infrastructure-docker
+        pkg: infra/capi/cluster-capi-aws
         version: "{{ nephio_catalog_revision }}"
         async: 780
         poll: 5
-      - repo_uri: "{{ nephio_catalog_repo_uri }}"
-        pkg: infra/capi/cluster-capi-kind-docker-templates
-        version: "{{ nephio_catalog_revision }}"
-        async: 1500
-        poll: 0
+      # - repo_uri: "{{ nephio_catalog_repo_uri }}"
+      #   pkg: infra/capi/cluster-capi-kind-docker-templates
+      #   version: "{{ nephio_catalog_revision }}"
+      #   async: 1500
+      #   poll: 0
 
 metallb:
   enabled: true
