@@ -109,7 +109,7 @@ tag "infra/gcp/cc-repo-csr/$NEPHIO_VERSION"
 tag "infra/gcp/nephio-blueprint-repo/$NEPHIO_VERSION"
 tag "infra/gcp/nephio-workload-cluster-gke/$NEPHIO_VERSION"
 
-tag "nephio/core/configsync/$NEPHIO_VERSION"
+tag "nephio/core/argo-cd-core/$NEPHIO_VERSION"
 tag "nephio/core/nephio-operator/$NEPHIO_VERSION"
 tag "nephio/core/porch/$NEPHIO_VERSION"
 tag "nephio/core/workload-crds/$NEPHIO_VERSION"

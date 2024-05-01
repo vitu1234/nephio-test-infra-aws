@@ -33,7 +33,7 @@ nephio:
         version: "{{ nephio_pkg_version }}"
         async: 90
         poll: 0
-      - pkg: configsync
+      - pkg: argo-cd-core
         version: "{{ nephio_pkg_version }}"
         async: 90
         poll: 0

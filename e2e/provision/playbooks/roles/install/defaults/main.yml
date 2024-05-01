@@ -11,6 +11,9 @@
 k8s:
   context: kubernetes-admin@kubernetes
 
+local-path-provisioner:
+
+
 gitea:
   k8s:
     username: nephio
@@ -52,6 +55,7 @@ nephio_stock_repos:
     repo: "{{ nephio_catalog_repo_uri }}"
     directory: /workloads/tools
     branch: "{{ nephio_catalog_branch }}"
+    
 
 nephio:
   k8s:
@@ -75,7 +79,7 @@ nephio:
         async: 480
         poll: 5
       - repo_uri: "{{ nephio_catalog_repo_uri }}"
-        pkg: nephio/core/configsync
+        pkg: nephio/core/argo-cd-core
         version: main
         async: 240
         poll: 5
@@ -92,4 +96,13 @@ nephio_webui:
     package:
       repo_uri: "{{ nephio_catalog_repo_uri }}"
       pkg: nephio/optional/webui
+      version: main
+
+local_path_provisioner:
+  k8s:
+    namespace: local-path-storage
+  kpt:
+    package:
+      repo_uri: "{{ nephio_catalog_repo_uri }}"
+      pkg: infra/capi/local-path-provisioner
       version: main

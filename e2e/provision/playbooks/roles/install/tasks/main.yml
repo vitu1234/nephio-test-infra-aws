@@ -42,6 +42,17 @@
   vars:
     context: "{{ k8s.context }}"
 
+- name: Deploy Local path provisioner
+  ansible.builtin.include_role:
+    name: kpt
+  vars:
+    repo_uri: "{{ local_path_provisioner.kpt.package.repo_uri }}"
+    pkg: "{{ local_path_provisioner.kpt.package.pkg }}"
+    version: "{{ local_path_provisioner.kpt.package.version }}"
+    context: "{{ k8s.context }}"
+    kpt_async: 600
+    kpt_poll: 5   
+
 - name: Create gitea user password in nephio-system namespace
   kubernetes.core.k8s:
     context: "{{ k8s.context }}"
