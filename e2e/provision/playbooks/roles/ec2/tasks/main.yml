@@ -39,10 +39,33 @@
     network:
       assign_public_ip: true
     image_id: "{{ ami_id }}"
+    volumes:
+      - device_name: /dev/sda1
+        ebs:
+          volume_size: 200
+          delete_on_termination: true
     tags:
       Name: "{{ item }}"
   register: ec2
   loop: "{{ instance_tag }}"
+
+- debug:
+    msg: "{{ ec2 }}"
+
+
+# - name: Attach Volumes
+#   amazon.aws.ec2_vol:
+#     instance: "{{ item.instance_ids[0] }}"
+#     # id: "{{ item.instance_ids[0] }}"
+#     volume_size: 200
+#     volume_type: gp2
+#     delete_on_termination: yes
+#     region: "{{ region_name }}"
+#     aws_access_key: "{{ access_key }}"
+#     aws_secret_key: "{{ secret_key }}"
+#   loop: "{{ ec2.results }}"
+#   register: ec2_vol
+
 
 # - debug:
 #     msg: "{{ ec2 }}"
