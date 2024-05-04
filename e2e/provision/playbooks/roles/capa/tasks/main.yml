@@ -2,10 +2,10 @@
 # tasks file for capa
 
 
-- name: Check if AWS Region variable is set
-  shell: echo $AWS_REGION
-  register: aws_region
-  ignore_errors: true
+# - name: Check if AWS Region variable is set
+#   shell: echo $AWS_REGION
+#   register: aws_region
+#   ignore_errors: true
 
 
 - name: Download clusterctl binary
@@ -45,6 +45,23 @@
 #     export AWS_ACCESS_KEY_ID="{{ aws_access_key }}"
 #     export AWS_SECRET_ACCESS_KEY="{{ aws_secret_key }}"
 #     export AWS_SESSION_TOKEN="{{ aws_session_token }}"
+- name: Print AWS variables
+  debug:
+    msg:
+      - "AWS_REGION: {{ aws_region }}"
+      - "AWS_ACCESS_KEY_ID: {{ aws_access_key }}"
+      - "AWS_SECRET_ACCESS_KEY: {{ aws_secret_key }}"
+      - "AWS_SESSION_TOKEN: {{ aws_session_token }}"
+
+- name: Create cloud formation using clusterawsadm
+  become: yes
+  become_method: sudo
+  command: "clusterawsadm bootstrap iam create-cloudformation-stack"
+  environment:
+    AWS_REGION: "{{ aws_region }}"
+    AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"
+    AWS_SESSION_TOKEN: "{{ aws_session_token }}"
 
 - name: Encode credentials using clusterawsadm
   become: yes
