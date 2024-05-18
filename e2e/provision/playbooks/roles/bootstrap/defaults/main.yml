@@ -23,7 +23,7 @@ gtp5g_version: v0.8.3
 gtp5g_tarball_url: "https://github.com/free5gc/gtp5g/archive/refs/tags/{{ gtp5g_version }}.tar.gz"
 
 k8s:
-  context: kubernetes-admin@kubernetes
+  context: kubernetes
   version: v1.29.2
 
 # kind:
@@ -91,11 +91,11 @@ cluster_api:
         version: "{{ nephio_catalog_revision }}"
         async: 900
         poll: 5
-      - repo_uri: "{{ nephio_catalog_repo_uri }}"
-        pkg: infra/capi/cluster-capi-aws
-        version: "{{ nephio_catalog_revision }}"
-        async: 780
-        poll: 5
+      # - repo_uri: "{{ nephio_catalog_repo_uri }}"
+      #   pkg: infra/capi/cluster-capi-aws
+      #   version: "{{ nephio_catalog_revision }}"
+      #   async: 780
+      #   poll: 5
       # - repo_uri: "{{ nephio_catalog_repo_uri }}"
       #   pkg: infra/capi/cluster-capi-kind-docker-templates
       #   version: "{{ nephio_catalog_revision }}"

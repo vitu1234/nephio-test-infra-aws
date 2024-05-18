@@ -163,8 +163,73 @@
       mkdir -p $HOME/.kube
       sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
       sudo chown $(id -u):$(id -g) $HOME/.kube/config
-- name: Deploying Flannel on Master Node
-  command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+# - name: Deploying Flannel on Master Node
+#   command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+
+- name: Run kubectl config current-context
+  command: kubectl config current-context
+  register: contexts_name
+
+- name: Save current context to a variable
+  set_fact:
+    original_current_context: "{{ contexts_name.stdout }}"
+
+- name: Display the current context name
+  debug:
+    msg: "Current Original context name is: {{ original_current_context }}"
+
+- name: Extract context after '@'
+  set_fact:
+    context_name: "{{ original_current_context | regex_replace('.*@', '') }}"
+
+- name: Display extracted context name
+  debug:
+    msg: "Context name after '@' is: {{ context_name }}"    
+
+- name: Rename current context name
+  command: kubectl config rename-context {{ original_current_context }} {{ context_name }} 
+
+
+
+- name: Get the latest Cilium CLI version
+  shell: curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt
+  register: cilium_cli_version
+
+- name: Determine CLI architecture
+  set_fact:
+    cli_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
+- name: Download Cilium CLI and checksum files
+  shell: |
+    curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version.stdout }}/cilium-linux-{{ cli_arch }}.tar.gz{,.sha256sum}
+  args:
+    chdir: /tmp
+
+- name: Verify checksum
+  shell: sha256sum --check cilium-linux-{{ cli_arch }}.tar.gz.sha256sum
+  args:
+    chdir: /tmp
+
+- name: Extract Cilium CLI and move to /usr/local/bin
+  shell: sudo tar xzvfC /tmp/cilium-linux-{{ cli_arch }}.tar.gz /usr/local/bin
+  args:
+    chdir: /tmp
+
+- name: Clean up downloaded cilium files
+  file:
+    path: /tmp/cilium-linux-{{ cli_arch }}.tar.gz{{ item }}
+    state: absent
+  loop:
+    - ''
+    - '.sha256sum'    
+
+
+- name: Run Cilium Installation on master node
+  command: cilium install --set cluster.name={{ context_name }} --set cluster.id=1 --context {{ context_name }}
+
+
+
 
 - name: Creating token for Slave
   command: kubeadm token create  --print-join-command

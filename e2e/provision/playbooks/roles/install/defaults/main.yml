@@ -9,7 +9,7 @@
 ##############################################################################
 
 k8s:
-  context: kubernetes-admin@kubernetes
+  context: kubernetes
 
 local_path_provisioner:
   k8s:

@@ -12,8 +12,8 @@ python_pkgs:
 
 sg_name: Allow_All_SG
 region_name: ap-northeast-2 
-subnet_name: subnet-0132f2a2bc7a34c0d
+subnet_name: subnet-06efe7eee52ec8e96
 ami_id: ami-09a7535106fbd42d5
-vpc_id: vpc-0fedfa9bd7f06957b
+vpc_id: vpc-07ebe34f3bcff09d7
 keypair: nephio3
 instance_flavour: c5.4xlarge

@@ -12,5 +12,5 @@ reconcile_timeout: 10m
 nephio_catalog_repo_uri: https://github.com/vitu1234/catalog.git
 nephio_catalog_branch: main
 k8s:
-  context: kubernetes-admin@kubernetes
+  context: kubernetes
   version: v1.29.2
