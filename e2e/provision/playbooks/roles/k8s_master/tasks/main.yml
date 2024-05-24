@@ -163,8 +163,8 @@
       mkdir -p $HOME/.kube
       sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
       sudo chown $(id -u):$(id -g) $HOME/.kube/config
-# - name: Deploying Flannel on Master Node
-#   command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+- name: Deploying Flannel on Master Node
+  command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 
 
 - name: Run kubectl config current-context
@@ -192,41 +192,41 @@
 
 
 
-- name: Get the latest Cilium CLI version
-  shell: curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt
-  register: cilium_cli_version
+# - name: Get the latest Cilium CLI version
+#   shell: curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt
+#   register: cilium_cli_version
 
-- name: Determine CLI architecture
-  set_fact:
-    cli_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+# - name: Determine CLI architecture
+#   set_fact:
+#     cli_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 
-- name: Download Cilium CLI and checksum files
-  shell: |
-    curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version.stdout }}/cilium-linux-{{ cli_arch }}.tar.gz{,.sha256sum}
-  args:
-    chdir: /tmp
+# - name: Download Cilium CLI and checksum files
+#   shell: |
+#     curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version.stdout }}/cilium-linux-{{ cli_arch }}.tar.gz{,.sha256sum}
+#   args:
+#     chdir: /tmp
 
-- name: Verify checksum
-  shell: sha256sum --check cilium-linux-{{ cli_arch }}.tar.gz.sha256sum
-  args:
-    chdir: /tmp
+# - name: Verify checksum
+#   shell: sha256sum --check cilium-linux-{{ cli_arch }}.tar.gz.sha256sum
+#   args:
+#     chdir: /tmp
 
-- name: Extract Cilium CLI and move to /usr/local/bin
-  shell: sudo tar xzvfC /tmp/cilium-linux-{{ cli_arch }}.tar.gz /usr/local/bin
-  args:
-    chdir: /tmp
+# - name: Extract Cilium CLI and move to /usr/local/bin
+#   shell: sudo tar xzvfC /tmp/cilium-linux-{{ cli_arch }}.tar.gz /usr/local/bin
+#   args:
+#     chdir: /tmp
 
-- name: Clean up downloaded cilium files
-  file:
-    path: /tmp/cilium-linux-{{ cli_arch }}.tar.gz{{ item }}
-    state: absent
-  loop:
-    - ''
-    - '.sha256sum'    
+# - name: Clean up downloaded cilium files
+#   file:
+#     path: /tmp/cilium-linux-{{ cli_arch }}.tar.gz{{ item }}
+#     state: absent
+#   loop:
+#     - ''
+#     - '.sha256sum'    
 
 
-- name: Run Cilium Installation on master node
-  command: cilium install --set cluster.name={{ context_name }} --set cluster.id=1 --context {{ context_name }}
+# - name: Run Cilium Installation on master node
+#   command: cilium install --set cluster.name={{ context_name }} --set cluster.id=1 --context {{ context_name }}
 
 
 
