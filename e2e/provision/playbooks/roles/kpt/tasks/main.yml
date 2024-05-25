@@ -71,6 +71,27 @@
     msg: "HTTP port for gitea service is {{ http_port }}"
   when: workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt"
 
+- name: Print public facts
+  debug:
+    msg: "The public master DNS name is {{ hostvars['localhost'] }}"
+
+- name: Print public master DNS name
+  debug:
+    msg: "The public master DNS name is {{ hostvars['localhost']['public_dns_name'] }}"
+
+- name: Print EC2 master IP
+  debug:
+    msg: "The EC2 master IP address is {{ hostvars['localhost']['ec2_master_ip'] }}"
+
+- name: Print EC2 slave1 IP
+  debug:
+    msg: "The EC2 slave1 IP address is {{ hostvars['localhost']['ec2_slave1_ip'] }}"
+
+- name: Print EC2 slave2 IP
+  debug:
+    msg: "The EC2 slave2 IP address is {{ hostvars['localhost']['ec2_slave2_ip'] }}"
+
+
  #modify the repo IP address
 - name: Create a ConfigMap manifest
   copy:
@@ -83,7 +104,7 @@
         labels:
           app: node-ip
       data:
-        node-ip: "{{ node_ip }}"
+        node-ip: "{{ hostvars['localhost']['ec2_master_ip'] }}"
         node-port: "{{ http_port }}"
   when: workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt"
 

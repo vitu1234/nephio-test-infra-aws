@@ -72,6 +72,10 @@
 - name: Set ec2 facts
   set_fact:
     public_dns_name: "{{ ec2.results[0].instances[0].public_dns_name }}"
+    ec2_master_ip: "{{ ec2.results[0].instances[0].public_ip_address }}"
+    ec2_slave1_ip: "{{ ec2.results[1].instances[0].public_ip_address }}"
+    ec2_slave2_ip: "{{ ec2.results[2].instances[0].public_ip_address }}"
+  delegate_to: localhost
           
 - name: Add 1st instance to host group ec2_master
   add_host:
