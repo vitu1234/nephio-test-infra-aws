@@ -124,6 +124,22 @@
         node-port: "{{ http_port }}"
   when: workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator" 
 
+  #modify the repo IP address only for rootsync
+- name: Create a ConfigMap manifest for RootSync
+  copy:
+    dest: "{{ workdir }}/configmap.yaml"
+    content: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: repo-service-node-ip
+        labels:
+          app: node-ip
+      data:
+        node-ip: "{{ hostvars['localhost']['ec2_master_ip'] }}"
+        node-port: "{{ http_port }}"
+  when: workdir == "/tmp/rootsync/mgmt"
+
 
 
 - name: Get HTTP port for gitea service
