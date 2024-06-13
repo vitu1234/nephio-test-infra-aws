@@ -50,7 +50,7 @@ nephio_stock_repos:
     repo: "{{ nephio_catalog_repo_uri }}"
     directory: /nephio/optional
     branch: "{{ nephio_catalog_branch }}"
-  - name: oai-core-packages
+  - name:  oai-packages
     repo: https://github.com/vitu1234/oai-packages.git
     directory: /
     branch: main

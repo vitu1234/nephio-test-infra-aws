@@ -12,7 +12,7 @@
   become: yes
   become_method: sudo
   get_url:
-    url: https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.1/clusterctl-linux-amd64
+    url: https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.2/clusterctl-linux-amd64
     dest: /tmp/clusterctl-linux-amd64
     mode: '0755'
 
@@ -25,7 +25,7 @@
   become: yes
   become_method: sudo
   get_url:
-    url: https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/download/v2.4.2/clusterawsadm_v2.4.2_linux_amd64
+    url: https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/download/v2.5.0/clusterawsadm_v2.5.0_linux_amd64
     dest: /tmp/clusterawsadm-linux-amd64
     mode: '0755'
 

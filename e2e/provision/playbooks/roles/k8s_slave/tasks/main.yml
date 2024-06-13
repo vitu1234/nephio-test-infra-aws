@@ -53,6 +53,12 @@
     name: apt-transport-https
     state: present
 
+- name: ensure /etc/apt/keyrings directory exists
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
 - name: add Docker apt-key
   get_url:
     url: https://download.docker.com/linux/ubuntu/gpg
