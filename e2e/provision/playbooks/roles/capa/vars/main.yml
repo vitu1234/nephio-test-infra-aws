@@ -6,6 +6,6 @@ service_names:
   - "kubelet"
 
 aws_region: "ap-northeast-2"
-aws_access_key: "ASIA5TRKJVUQUPYSORYI"
-aws_secret_key: "nrdDdezV3a4rLKvb1DXjNh+pFSUfp6i8AIagRs0m"
-aws_session_token: "IQoJb3JpZ2luX2VjEPj//////////wEaDmFwLW5vcnRoZWFzdC0yIkcwRQIgZaozYVsIQhgtfaJwloCG9ogO8v9Ifx4TvX5kVe8WtI8CIQCs5YzLvpkAkL89Jo6hIcrtS2MmtvMXnTAXi8ZKmt8cUCr4AQiR//////////8BEAIaDDkzNTMxNzg0MzIzMyIMx2wfoDn0Hqo9ZLQwKswBWRz9YLF2sJWNBZgxUxh87/AeEEHv7T7KlOBmGA3kukUpMuBf0WKEGVh9d5QgDZ1NnkdJmCIbYhN+Op3d8V7yqCQM3i+CwzwLtcoRdNxQzDoLRUSU9u5IKt1w0LcuZJ2Vc3OYrhCZz6rokvAWZ1kp7bjh0ESd3hTKWWE5sKsG2vK9ih3gnyUjtluDIYLKHBhLO1qcJLNmDFfEkxS8XI1f/+wx1yEVjEZ9ugZCXyG+RlPWEOShqR1LSYWUtJvXqMlmMPjxOe5Oov6XJi91MNK3rLMGOpgBwOj+c7vCql0hhfVNr5QZwIbj4ZmdFkXXF2yBIQ6z7EbA8qC569waKKwqxiE7mS136PVXOCmiBWQw8oM5Y+dYWQNYqAPMnun8DdFgGS3kEJcYe9orUlUrpT5RilTIb9JJ+/T7TfvQWFq4IsGyytSns4wFrFW9JnX+4rvRIAV7dXgKOxq0ht6SoDEfSQOr3l7eBmdZaGtuiDc="
+aws_access_key: ""
+aws_secret_key: ""
+aws_session_token: ""

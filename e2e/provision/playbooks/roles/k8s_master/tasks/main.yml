@@ -186,41 +186,6 @@
 # - name: Deploying Flannel on Master Node
 #   command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 
-- name: Deploying Calico on Master Node
-  command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
-  # command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/calico.yaml
-
-- name: Create Calico Resource Config
-  kubernetes.core.k8s:
-    state: present
-    context: "{{ k8s.context }}"
-    definition:
-      apiVersion: operator.tigera.io/v1
-      kind: Installation
-      metadata:
-        name: default
-      spec:
-        # Configures Calico networking.
-        calicoNetwork:
-          ipPools:
-          - name: default-ipv4-ippool
-            blockSize: 26
-            cidr: 10.244.0.0/16
-            encapsulation: VXLANCrossSubnet
-            natOutgoing: Enabled
-            nodeSelector: all()
-            containerIPForwarding: Enabled
-
-- name: Create Calico Resource Config
-  kubernetes.core.k8s:
-    state: present
-    context: "{{ k8s.context }}"
-    definition:
-      apiVersion: operator.tigera.io/v1
-      kind: APIServer
-      metadata:
-        name: default
-      spec: {}
 
 
 - name: Run kubectl config current-context
@@ -284,6 +249,41 @@
 # - name: Run Cilium Installation on master node
 #   command: cilium install --set cluster.name={{ context_name }} --set cluster.id=1 --context {{ context_name }}
 
+- name: Deploying Calico on Master Node
+  # command: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
+  command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/calico.yaml
+
+# - name: Create Calico Resource Config
+#   kubernetes.core.k8s:
+#     state: present
+#     context: "{{ context_name }}"
+#     definition:
+#       apiVersion: operator.tigera.io/v1
+#       kind: Installation
+#       metadata:
+#         name: default
+#       spec:
+#         # Configures Calico networking.
+#         calicoNetwork:
+#           ipPools:
+#           - name: default-ipv4-ippool
+#             blockSize: 26
+#             cidr: 10.244.0.0/16
+#             encapsulation: VXLANCrossSubnet
+#             natOutgoing: Enabled
+#             nodeSelector: all()
+#             containerIPForwarding: Enabled
+
+# - name: Create Calico Resource Config
+#   kubernetes.core.k8s:
+#     state: present
+#     context: "{{ context_name }}"
+#     definition:
+#       apiVersion: operator.tigera.io/v1
+#       kind: APIServer
+#       metadata:
+#         name: default
+#       spec: {}
 
 
 
