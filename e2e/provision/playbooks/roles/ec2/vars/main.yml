@@ -12,9 +12,9 @@ python_pkgs:
 
 sg_name: default
 region_name: ap-northeast-2 
-subnet_name: subnet-04ee126ee28f69cd1
+subnet_name: subnet-0d21b919b950d8fc8
 # ami_id: ami-09a7535106fbd42d5 #ubuntu 22.04 LTS
 ami_id: ami-08b2c3a9f2695e351 #ubuntu 20.04 LTS
-vpc_id: vpc-0c5dc02293222016c
+vpc_id: vpc-06a612b4933eedfd5
 keypair: nephio3
 instance_flavour: c5.4xlarge
