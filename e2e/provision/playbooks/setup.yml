@@ -31,7 +31,7 @@
     AWS_REGION: ap-northeast-2
     AWS_ACCESS_KEY_ID: ""
     AWS_SECRET_ACCESS_KEY: ""
-    AWS_SESSION_TOKEN: ""
+    AWS_SESSION_TOKEN: 
   tasks:
     - name: Running CAPA Role
       include_role:
