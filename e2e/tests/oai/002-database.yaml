@@ -14,9 +14,9 @@ metadata:
   name: oai-common
 spec:
   upstream:
-    repo: oai-core-packages
+    repo: oai-packages
     package: database
-    revision: r2
+    revision: v2.0.0
   targets:
   - objectSelector:
       apiVersion: infra.nephio.org/v1alpha1

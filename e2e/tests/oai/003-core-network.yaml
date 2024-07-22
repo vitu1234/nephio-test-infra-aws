@@ -14,9 +14,9 @@ metadata:
   name: oai-nrf
 spec:
   upstream:
-    repo: oai-core-packages
+    repo: oai-packages
     package: oai-nrf
-    revision: r2
+    revision: v2.0.0
   downstream:
     repo: core
     package: oai-nrf
@@ -31,9 +31,9 @@ metadata:
   name: oai-udm
 spec:
   upstream:
-    repo: oai-core-packages
+    repo: oai-packages
     package: oai-udm
-    revision: r2
+    revision: v2.0.0
   downstream:
     repo: core
     package: oai-udm
@@ -48,9 +48,9 @@ metadata:
   name: oai-ausf
 spec:
   upstream:
-    repo: oai-core-packages
+    repo: oai-packages
     package: oai-ausf
-    revision: r2
+    revision: v2.0.0
   downstream:
     repo: core
     package: oai-ausf
@@ -65,9 +65,9 @@ metadata:
   name: oai-udr
 spec:
   upstream:
-    repo: oai-core-packages
+    repo: oai-packages
     package: oai-udr
-    revision: r2
+    revision: v2.0.0
   downstream:
     repo: core
     package: oai-udr
@@ -82,9 +82,9 @@ metadata:
   name: oai-amf
 spec:
   upstream:
-    repo: oai-core-packages
+    repo: oai-packages
     package: oai-amf
-    revision: r2
+    revision: v2.0.0
   downstream:
     repo: core
     package: oai-amf
@@ -99,9 +99,9 @@ metadata:
   name: oai-smf
 spec:
   upstream:
-    repo: oai-core-packages
+    repo: oai-packages
     package: oai-smf
-    revision: r2
+    revision: v2.0.0
   downstream:
     repo: core
     package: oai-smf
@@ -116,9 +116,9 @@ metadata:
   name: oai-upf-edge
 spec:
   upstream:
-    repo: oai-core-packages
+    repo: oai-packages
     package: oai-upf-edge
-    revision: r2
+    revision: v2.0.0
   downstream:
     repo: edge
     package: oai-upf
