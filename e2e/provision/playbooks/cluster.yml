@@ -53,7 +53,7 @@
     name: kpt
   loop:
     - {pkg: distros/sandbox/repository, dest: /tmp/repository/mgmt}
-    - {pkg: nephio/optional/rootsync, dest: /tmp/rootsync/mgmt}
+    - {pkg: nephio/optional/argoapp, dest: /tmp/argoapp/mgmt}
     - {pkg: distros/sandbox/repository, dest: /tmp/repository/mgmt-staging}
   vars:
     repo_uri: "{{ nephio_catalog_repo_uri }}"
