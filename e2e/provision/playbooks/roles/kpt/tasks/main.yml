@@ -125,7 +125,7 @@
   when: workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator" 
 
   #modify the repo IP address only for rootsync
-- name: Create a ConfigMap manifest for RootSync
+- name: Create a ConfigMap manifest for ArgoApp
   copy:
     dest: "{{ workdir }}/configmap.yaml"
     content: |
@@ -138,7 +138,7 @@
       data:
         node-ip: "{{ hostvars['localhost']['ec2_master_ip'] }}"
         node-port: "{{ http_port }}"
-  when: workdir == "/tmp/rootsync/mgmt"
+  when: workdir == "/tmp/argoapp/mgmt"
 
 
 

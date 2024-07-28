@@ -2,9 +2,9 @@
 # vars file for ec2
 
 instance_tag:
-        - master-vitu
-        - slave1-vitu
-        - slave2-vitu
+        - control-demo
+        - node1-demo
+        - node2-demo
 
 python_pkgs:
         - boto
@@ -12,9 +12,9 @@ python_pkgs:
 
 sg_name: default
 region_name: ap-northeast-2 
-subnet_name: subnet-0304e32ddbd038f8a
+subnet_name: subnet-0b4648969f036853b
 # ami_id: ami-09a7535106fbd42d5 #ubuntu 22.04 LTS
 ami_id: ami-08b2c3a9f2695e351 #ubuntu 20.04 LTS
-vpc_id: vpc-07e2106a3e0415280
+vpc_id: vpc-0993318d4f77f816d
 keypair: nephio3
-instance_flavour: c5.4xlarge
+instance_flavour: t3.xlarge
