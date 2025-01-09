@@ -12,9 +12,9 @@ python_pkgs:
 
 sg_name: default
 region_name: ap-northeast-2 
-subnet_name: subnet-0b4648969f036853b
+subnet_name: subnet-0a520f7a16813dbcb
 # ami_id: ami-09a7535106fbd42d5 #ubuntu 22.04 LTS
 ami_id: ami-08b2c3a9f2695e351 #ubuntu 20.04 LTS
-vpc_id: vpc-0993318d4f77f816d
-keypair: nephio3
+vpc_id: vpc-0de3cf98b112bed75
+keypair: my-aws-key
 instance_flavour: t3.xlarge

@@ -49,6 +49,7 @@ sudo tee /etc/ansible/ansible.cfg <<EOT
 pipelining=True
 # Enable SSH Multiplexing
 ansible_ssh_common_args = -o ControlMaster=auto -o ControlPersist=30m -o ConnectionAttempts=100
+ssh_args = -o StrictHostKeyChecking=no
 retries=2
 
 [defaults]
