@@ -67,9 +67,8 @@ localhost_warning = False
 deprecation_warnings = False
 command_warnings=False
 ask_pass=False
-# roles_path= ./roles
 force_valid_group_names = ignore
-private_key_file= /home/ubuntu/nephio/test-infra-aws/e2e/provision/playbooks/nephio3.pem
+private_key_file= ~/nephio-test-infra-aws/e2e/provision/playbooks/nephio.pem
 remote_user=ubuntu
 
 [privilege_escalation]

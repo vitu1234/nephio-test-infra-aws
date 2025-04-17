@@ -5,6 +5,10 @@ service_names:
   - "docker"
   - "kubelet"
 
+clusterctl_version: v1.9.6
+clusterawsadm: v2.8.1
+
+
 aws_region: "ap-northeast-2"
 aws_access_key: "$AWS_ACCESS_KEY_ID_HERE"
 aws_secret_key: "$AWS_SECRET_ACCESS_KEY_HERE"
