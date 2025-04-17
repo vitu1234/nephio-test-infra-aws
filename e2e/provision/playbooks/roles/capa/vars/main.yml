@@ -6,7 +6,7 @@ service_names:
   - "kubelet"
 
 clusterctl_version: v1.9.6
-clusterawsadm: v2.8.1
+clusterawsadm: v2.7.1
 
 
 aws_region: "ap-northeast-2"
