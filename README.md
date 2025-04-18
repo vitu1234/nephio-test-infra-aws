@@ -10,3 +10,7 @@ repository.
 Use this to get token for authenticantion
 
 `aws sts get-session-token --duration-seconds 129600 --serial-number arn:aws:iam::935317843233:mfa/VtiPhone-14P --token-code 890658`
+
+### Running Nephio on AWS and Installing OAI 5G
+
+Find full guide on this page [here](./bootstrap_5g_guide.md)
