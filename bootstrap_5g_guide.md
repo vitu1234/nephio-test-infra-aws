@@ -1,4 +1,4 @@
-# AWS Nephio Boostrapping, 5G Workload cluster Guide
+# AWS Nephio Bootstrapping, 5G Workload cluster Guide
 
 ## OVERVIEW STEPS
 
@@ -59,17 +59,14 @@
 - Create and Configure AWS Resources
 
   ![create-vpc.jpg](images/images_bootstrap_5g_guide/create-vpc.jpg)
-
 - After creating you should have something like this
 
   ![image.png](images/images_bootstrap_5g_guide/image%204.png)
 
   ![overview-resources-after-vpc-creation.jpg](images/images_bootstrap_5g_guide/overview-resources-after-vpc-creation.jpg)
-
 - Edit subnet settings to allow auto-assign public ipv4 address to instances
 
   ![public-subnet-settings.jpg](images/images_bootstrap_5g_guide/public-subnet-settings.jpg)
-
 - create you key-pair in EC2 menu
 
   ![create-key-pair-download.jpg](images/images_bootstrap_5g_guide/create-key-pair-download.jpg)
@@ -77,10 +74,10 @@
 #### Step 2
 
 - Configure Ansible Playbooks with Values from the created AWS resources
+
   - Variables to create management cluster Instances:
 
   ![image.png](images/images_bootstrap_5g_guide/image%205.png)
-
 - - Auth Variables for Ansible to create AWS EC2 Instances:
 
   ![image.png](images/images_bootstrap_5g_guide/image%206.png)
@@ -95,7 +92,6 @@
 - Run the Ansible Playbook program from the local computer
 
   ![image.png](images/images_bootstrap_5g_guide/image%208.png)
-
 - Takes 10-15mins bootstrapping the management cluster.
 - Will create 1 Control node and 2 worker nodes
 
@@ -104,10 +100,10 @@
 #### Step 4
 
 - Accessing the Management Cluster Via SSH
+
   - Management cluster nodes
 
   ![image.png](images/images_bootstrap_5g_guide/image%2010.png)
-
 - SSH into the control node to access nephio components and create workload clusters
 
 #### Step 5
@@ -115,7 +111,6 @@
 - Check all the pods and repositories running in the management cluster
 
   ![image.png](images/images_bootstrap_5g_guide/image%2011.png)
-
 - Stock  and management repositories
 
   ![image.png](images/images_bootstrap_5g_guide/image%2012.png)
@@ -171,7 +166,6 @@
 - After 2-5mins we have the instances created, up and running and each cluster will have its own git repo.
 
   ![image.png](images/images_bootstrap_5g_guide/image%2022.png)
-
 - Next, we have to get kubeconfig and install Cilium CNI otherwise if cluster interconnectivity is not required, no need to install a CNI as it will automatically be configured with Nephio through ArgoCD
 
   ![image.png](images/images_bootstrap_5g_guide/image%2023.png)
@@ -183,11 +177,9 @@
 - Installing cilium CNI on the workload clusters (core, regional and edge)
 
   ![image.png](images/images_bootstrap_5g_guide/image%2025.png)
-
 - install Cilium CNI otherwise if cluster interconnectivity is not required, no need to install a CNI as it will automatically be configured with Nephio through ArgoCD
 
   ![image.png](images/images_bootstrap_5g_guide/image%2026.png)
-
 - After installing Cilium, we have to interconnect the clusters using the ciliumctl
 
 #### Step 12
@@ -196,7 +188,6 @@
 - Edge and core clusters interconnected:
 
   ![image.png](images/images_bootstrap_5g_guide/image%2027.png)
-
 - install Cilium CNI otherwise if cluster interconnectivity is not required, no need to install a CNI as it will automatically be configured with Nephio through ArgoCD
 - After installing Cilium, we have to interconnect the clusters using the ciliumctl
 
@@ -209,7 +200,6 @@
   Regional, Edge and core clusters interconnected and passed the cilium interconnectivity test:
 
   ![image.png](images/images_bootstrap_5g_guide/image%2029.png)
-
 - install Cilium CNI otherwise if cluster interconnectivity is not required, no need to install a CNI as it will automatically be configured with Nephio through ArgoCD
 - After installing Cilium, we have to interconnect the clusters using the ciliumctl
 
@@ -279,7 +269,6 @@
 - Access management cluster and get nephio-webui service
 
   ![image.png](images/images_bootstrap_5g_guide/image%2031.png)
-
 - The public IP and port will let you access the nephio-webui in the web browser
 
   - for example:
@@ -290,19 +279,15 @@
 - go to mgmt click deployment on and select the following values
 
   ![image.png](images/images_bootstrap_5g_guide/494412e7-9480-42c6-bbfd-36e374273eea.png)
-
 - add the name of the cluster and oother metadata then click next on the other sections and click on CREATE DEPLOYMENT
 
   ![image.png](images/images_bootstrap_5g_guide/image%2032.png)
-
 - flannel is the default CNI as shown on 1, click on edit to remove it from the package on 2 because will install CILIUM CNI later
 
   ![image.png](images/images_bootstrap_5g_guide/image%2033.png)
-
 - Click on delete icon to delete flannel CNI on 1 and click on save on 2 as shown
 
   ![image.png](images/images_bootstrap_5g_guide/image%2034.png)
-
 - Click on Propose then Approve
 - After for about 5mins, packages pending approval will show as below:
 - ***If nothing shows up after refreshing the screen, run the following commands in the management cluster:
@@ -315,12 +300,10 @@
 - The draft revisions will automatically show up after some 2-3mins like:
 
   ![image.png](images/images_bootstrap_5g_guide/image%2035.png)
-
 - In the mgmt-staging, if the packages are not automatically approved, just edit, propose and approve except for edge-argoapp (the first word depends on what you named the cluster)
 - edge-argoapp requires an input of values
 
   ![image.png](images/images_bootstrap_5g_guide/image%2036.png)
-
 - Click on *edge-argoapp* edit then open StarlarkRun file and add the IP address and port for the git server.
 - This is pretty much the IP and port number that you will see when you run this command in management cluster
 
@@ -333,7 +316,6 @@
 - Get that and put in the StarlarkRun on node_ip and http_port then click on save, propose and approve
 
   ![image.png](images/images_bootstrap_5g_guide/image%2038.png)
-
 - Similarly, go to the mgmt from the dashboard and approve edge-index Deployment except for *edge-repo* and *edge-cluster* which require values to be provided
 - Starting with the *edge-repo*  edit the package and edge the StarlarkRun file to add in the node_ip and http_port just like how we did above for the *edge_argoapp* then Save, Propose and Approve
 - Finally edit the edge-cluster where we have to add in our Workload-cluster AWS values/variables
@@ -344,7 +326,6 @@
   then:
 
   ![image.png](images/images_bootstrap_5g_guide/image%2040.png)
-
 - In the AWSMachineTemplate files add the machine flavor, keypair for the CP and worker node. For the worker node, the recommendation is to use c5.4xlarge
 - In the Cluster, add pod cidr and service cidr
 - Add AMI cluster API image tag in the **AWSMachineTemplate** resource, i used ami-0a1cfa462ff5dc5d9 available in the ap-northeast-2 region
@@ -610,15 +591,12 @@
 - 4 extra Interfaces to the edge cluster – edge worker node:
 
   ![image.png](images/images_bootstrap_5g_guide/image%2045.png)
-
 - 2 extra Interfaces to the core cluster – core worker node:
 
   ![image.png](images/images_bootstrap_5g_guide/image%2046.png)
-
 - 3 extra Interfaces to the regional cluster –regional worker node:
 
   ![image.png](images/images_bootstrap_5g_guide/image%2047.png)
-
 - Ssh into the bastion host then into each worker node in each workload cluster and install gtp module
 
   In the test scenario, using the Nephio Topology as shown in the diagram below
