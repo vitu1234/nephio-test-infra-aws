@@ -34,8 +34,6 @@
   become_method: sudo
   command: mv /tmp/clusterawsadm-linux-amd64 /usr/local/bin/clusterawsadm
 
-
-
 # - name: Set AWS environment variables
 #   become: yes
 #   become_method: sudo
@@ -47,31 +45,43 @@
 #     export AWS_SESSION_TOKEN="{{ aws_session_token }}"
 - name: Print AWS variables
   debug:
-    msg:
-      - "AWS_REGION: {{ aws_region }}"
-      - "AWS_ACCESS_KEY_ID: {{ aws_access_key }}"
-      - "AWS_SECRET_ACCESS_KEY: {{ aws_secret_key }}"
-      - "AWS_SESSION_TOKEN: {{ aws_session_token }}"
+    msg: >
+      {{
+        [
+          "AWS_REGION: " ~ aws_region
+        ]
+        + ([ "AWS_ACCESS_KEY_ID: " ~ aws_access_key ] if aws_access_key is defined and aws_access_key | length > 0 else [])
+        + ([ "AWS_SECRET_ACCESS_KEY: " ~ aws_secret_key ] if aws_secret_key is defined and aws_secret_key | length > 0 else [])
+        + ([ "AWS_SESSION_TOKEN: " ~ aws_session_token ] if aws_session_token is defined and aws_session_token | length > 0 else [])
+      }}
 
 - name: Create cloud formation using clusterawsadm
   become: yes
   become_method: sudo
   command: "clusterawsadm bootstrap iam create-cloudformation-stack"
-  environment:
-    AWS_REGION: "{{ aws_region }}"
-    AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
-    AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"
-    AWS_SESSION_TOKEN: "{{ aws_session_token }}"
+  environment: >-
+    {{
+      {
+        'AWS_REGION': aws_region
+      }
+      | combine({'AWS_ACCESS_KEY_ID': aws_access_key} if aws_access_key is defined and aws_access_key | length > 0 else {})
+      | combine({'AWS_SECRET_ACCESS_KEY': aws_secret_key} if aws_secret_key is defined and aws_secret_key | length > 0 else {})
+      | combine({'AWS_SESSION_TOKEN': aws_session_token} if aws_session_token is defined and aws_session_token | length > 0 else {})
+    }}
 
 - name: Encode credentials using clusterawsadm
   become: yes
   become_method: sudo
   command: "clusterawsadm bootstrap credentials encode-as-profile"
-  environment:
-    AWS_REGION: "{{ aws_region }}"
-    AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
-    AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"
-    AWS_SESSION_TOKEN: "{{ aws_session_token }}"
+  environment: >-
+    {{
+      {
+        'AWS_REGION': aws_region
+      }
+      | combine({'AWS_ACCESS_KEY_ID': aws_access_key} if aws_access_key is defined and aws_access_key | length > 0 else {})
+      | combine({'AWS_SECRET_ACCESS_KEY': aws_secret_key} if aws_secret_key is defined and aws_secret_key | length > 0 else {})
+      | combine({'AWS_SESSION_TOKEN': aws_session_token} if aws_session_token is defined and aws_session_token | length > 0 else {})
+    }}
   register: encoded_credentials_output
 
 - name: Export encoded credentials as environment variable
@@ -85,8 +95,6 @@
 - name: Debug AWS_B64ENCODED_CREDENTIALS
   debug:
     msg: "AWS_B64ENCODED_CREDENTIALS is {{ lookup('env', 'AWS_B64ENCODED_CREDENTIALS') }}"
-
-
 
 - name: Initialize management cluster
   become: yes

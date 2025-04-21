@@ -14,7 +14,7 @@ sg_name: default
 region_name: ap-northeast-3
 # subnet_name: subnet-0a520f7a16813dbcb
 # ami_id: ami-09a7535106fbd42d5 #ubuntu 22.04 LTS
-ami_id: ami-08b2c3a9f2695e351 #ubuntu 20.04 LTS
+ami_id: ami-0c1907b6d738188e5 #ubuntu 20.04 LTS
 
 keypair: mynephio2025
 instance_flavour: t3.xlarge
