@@ -52,7 +52,7 @@
 
   ![image.png](images/images_bootstrap_5g_guide/image%203.png)
 
-### **INSTALLATION - SETUP ANSIBLE - AWS CREDENTIALS**
+### **SETUP ANSIBLE - AWS CREDENTIALS**
 
 This should contain aws credentials
 
