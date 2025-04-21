@@ -52,6 +52,33 @@
   debug:
     msg: "Internet Gateway ID is {{ igw.gateway_id }}"
 
+- name: Create and associate route table
+  community.aws.ec2_vpc_route_table:
+    vpc_id: "{{ my_vpc.vpc.id }}"
+    region: "{{ region_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    tags:
+      Name: "{{ vpc_name }}-rt"
+    subnets:
+    - "{{ my_subnet.subnet.id }}"
+    routes:
+    - dest: 0.0.0.0/0
+      gateway_id: "{{ igw.gateway_id }}"
+  register: my_route_table
+
+- name: Add route to the internet
+  community.aws.ec2_vpc_route_table:
+    vpc_id: "{{ my_vpc.vpc.id }}"
+    tags:
+      Name: "{{ vpc_name }}-rt"
+    routes:
+    - dest: 0.0.0.0/0
+      gateway_id: "{{ igw.gateway_id }}"
+    region: "{{ region_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+
 - name: Creating Security Group for K8s Cluster
   amazon.aws.ec2_security_group:
     name: "{{ sg_name }}"
@@ -71,6 +98,7 @@
     rules_egress:
     - proto: all
       cidr_ip: 0.0.0.0/0
+  register: my_sg
 
 - name: Launching three EC2 instances on AWS
   amazon.aws.ec2_instance:
@@ -78,7 +106,7 @@
     key_name: "{{ keypair }}"
     vpc_subnet_id: "{{ my_subnet.subnet.id }}"
     instance_type: "{{ instance_flavour }}"
-    security_group: "{{ sg_name }}"
+    security_group: "{{ my_sg.group_id }}"
     aws_access_key: "{{ access_key }}"
     aws_secret_key: "{{ secret_key }}"
     region: "{{ region_name }}"
