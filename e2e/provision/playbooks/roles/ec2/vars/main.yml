@@ -2,19 +2,24 @@
 # vars file for ec2
 
 instance_tag:
-        - control-demo
-        - node1-demo
-        - node2-demo
+      - control-demo
+      - node1-demo
+      - node2-demo
 
 python_pkgs:
-        - boto
-        - boto3
+      - boto
+      - boto3
 
 sg_name: default
-region_name: ap-northeast-2 
-subnet_name: subnet-0a520f7a16813dbcb
+region_name: ap-northeast-3
+# subnet_name: subnet-0a520f7a16813dbcb
 # ami_id: ami-09a7535106fbd42d5 #ubuntu 22.04 LTS
 ami_id: ami-08b2c3a9f2695e351 #ubuntu 20.04 LTS
-vpc_id: vpc-0de3cf98b112bed75
-keypair: my-aws-key
+
+keypair: mynephio2025
 instance_flavour: t3.xlarge
+
+# vpc_id: vpc-0de3cf98b112bed75
+vpc_name: nephio-5g
+vpc_cidr_block: 192.168.0.0/20
+subnet_cidr_block: 192.168.0.0/24

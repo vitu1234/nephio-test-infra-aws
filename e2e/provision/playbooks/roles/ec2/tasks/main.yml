@@ -6,6 +6,52 @@
     state: present
   loop: "{{ python_pkgs }}"
 
+# create VPC and other resources for instances
+- name: Create VPC
+  ec2_vpc_net:
+    name: "{{ vpc_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    cidr_block: "{{ vpc_cidr_block }}"
+    region: "{{ region_name }}"
+    tags:
+      Name: "{{ vpc_name }}"
+  register: my_vpc
+
+- name: Output VPC ID
+  debug:
+    msg: "VPC ID is {{ my_vpc.vpc.id }}"
+
+- name: Create subnet
+  ec2_vpc_subnet:
+    state: present
+    vpc_id: "{{ my_vpc.vpc.id }}"
+    cidr: "{{ subnet_cidr_block }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    region: "{{ region_name }}"
+    tags:
+      Name: "{{ vpc_name }}-subnet"
+  register: my_subnet
+
+- name: Output Subnet ID
+  debug:
+    msg: "Subnet ID is {{ my_subnet.subnet.id }}"
+
+- name: Create internet gateway
+  ec2_vpc_igw:
+    vpc_id: "{{ my_vpc.vpc.id }}"
+    region: "{{ region_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    tags:
+      Name: "{{ vpc_name }}-igw"
+  register: igw
+
+- name: Output Internet Gateway ID
+  debug:
+    msg: "Internet Gateway ID is {{ igw.gateway_id }}"
+
 - name: Creating Security Group for K8s Cluster
   amazon.aws.ec2_security_group:
     name: "{{ sg_name }}"
@@ -13,11 +59,11 @@
     region: "{{ region_name }}"
     aws_access_key: "{{ access_key }}"
     aws_secret_key: "{{ secret_key }}"
-    vpc_id: "{{ vpc_id }}"
+    vpc_id: "{{ my_vpc.vpc.id }}"
     rules:
     - proto: tcp
       ports:
-        - 22
+      - 22
       cidr_ip: 0.0.0.0/0
       rule_desc: allow all on ssh port
     - proto: all
@@ -30,7 +76,7 @@
   amazon.aws.ec2_instance:
     # name: "public-compute-instance2"
     key_name: "{{ keypair }}"
-    vpc_subnet_id: "{{ subnet_name }}"
+    vpc_subnet_id: "{{ my_subnet.subnet.id }}"
     instance_type: "{{ instance_flavour }}"
     security_group: "{{ sg_name }}"
     aws_access_key: "{{ access_key }}"
@@ -40,10 +86,10 @@
       assign_public_ip: true
     image_id: "{{ ami_id }}"
     volumes:
-      - device_name: /dev/sda1
-        ebs:
-          volume_size: 200
-          delete_on_termination: true
+    - device_name: /dev/sda1
+      ebs:
+        volume_size: 200
+        delete_on_termination: true
     tags:
       Name: "{{ item }}"
   register: ec2
@@ -51,7 +97,6 @@
 
 - debug:
     msg: "{{ ec2 }}"
-
 
 # - name: Attach Volumes
 #   amazon.aws.ec2_vol:
@@ -76,7 +121,7 @@
     ec2_slave1_ip: "{{ ec2.results[1].instances[0].public_ip_address }}"
     ec2_slave2_ip: "{{ ec2.results[2].instances[0].public_ip_address }}"
   delegate_to: localhost
-          
+
 - name: Add 1st instance to host group ec2_master
   add_host:
     hostname: "{{ ec2.results[0].instances[0].public_ip_address }}"
