@@ -56,8 +56,17 @@
 
 This should contain aws credentials
 
+In the playbooks/cred.yml file add the AWS access 
+
+```bash
+access_key: PUT_HERE
+secret_key: PUT_HERE
+```
+
 #### Method 1: Manually enter password
-- Create an Ansible vault called pass.yml in the group_vars/all/ directory with the following command,
+
+- Create an Ansible vault called pass.yml in the playbooks/cred.yml directory with the following command,
+
 ```bash
   # 1. Create an ansible vault
   ansible-vault create playbooks/cred.yml
@@ -66,9 +75,11 @@ This should contain aws credentials
   New Vault password:
   Confirm New Vault password:
 ```
+
 With this method, you will be prompted for a password every time playbooks are executed or pass.yml is edited.
 
 #### Method 2: Automate password access
+
 - Though less secure, pass.yml (your ansible vault) can be created with an accompanying password file. This is referenced when executing playbooks and editing pass.yml so you no longer need to manually enter the password.
 
 ```bash
@@ -78,6 +89,7 @@ openssl rand -base64 2048 > vault.pass
 # 2. Create an ansible vault. 'vault.pass' is referenced with '--vault-password-file' option
 ansible-vault create playbooks/cred.yml --vault-password-file vault.pass
 ```
+
 With this method, --vault-password-file must now always be used when running the playbook or editing pass.yml, for example,
 
 ```bash
@@ -89,10 +101,12 @@ ansible-vault create playbooks/cred.yml --vault-password-file vault.pass
 ```
 
 With this method, --vault-password-file must now always be used when running the playbook or editing pass.yml, for example,
+
 ```bash
 # Editing 'pass.yaml'
 ansible-vault edit playbooks/cred.yml --vault-password-file vault.pass
 ```
+
 #### Bonus - Encrypt and decrypt the credentials
 
 ```bash
