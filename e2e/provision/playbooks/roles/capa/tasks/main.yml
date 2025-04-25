@@ -68,6 +68,7 @@
       | combine({'AWS_SECRET_ACCESS_KEY': aws_secret_key} if aws_secret_key is defined and aws_secret_key | length > 0 else {})
       | combine({'AWS_SESSION_TOKEN': aws_session_token} if aws_session_token is defined and aws_session_token | length > 0 else {})
     }}
+  when: cloud_formation_create | bool
 
 - name: Encode credentials using clusterawsadm
   become: yes

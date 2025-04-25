@@ -13,3 +13,4 @@ aws_region: "ap-northeast-2"
 aws_access_key: "$AWS_ACCESS_KEY_ID_HERE"
 aws_secret_key: "$AWS_SECRET_ACCESS_KEY_HERE"
 # aws_session_token: "$AWS_SESSION_TOKEN_HERE" ## uncomment if you are using Multi-factor authentication
+cloud_formation_create: false
