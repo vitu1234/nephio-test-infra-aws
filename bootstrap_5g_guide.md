@@ -56,7 +56,7 @@
 
 This should contain aws credentials
 
-In the playbooks/cred.yml file add the AWS access 
+In the playbooks/cred.yml file add the AWS access
 
 ```bash
 access_key: PUT_HERE

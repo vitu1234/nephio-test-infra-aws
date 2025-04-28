@@ -100,6 +100,70 @@
       cidr_ip: 0.0.0.0/0
   register: my_sg
 
+# Create Elastic IP for NAT Gateway
+- name: Allocate Elastic IP for NAT
+  amazon.aws.ec2_eip:
+    region: "{{ region_name }}"
+    in_vpc: true
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    state: present
+    tags:
+      Name: "my-nephio-elastic-ip"
+  register: nat_eip
+
+- name: Create NAT Gateway in public subnet
+  amazon.aws.ec2_vpc_nat_gateway:
+    subnet_id: "{{ my_subnet.subnet.id }}"
+    allocation_id: "{{ nat_eip.allocation_id }}"
+    region: "{{ region_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    state: present
+    tags:
+      Name: "my-nephio-nat-gateway"
+  register: nat_gateway
+
+- name: Check NAT Gateway status and wait for it to be avaiable
+  amazon.aws.ec2_vpc_nat_gateway_info:
+    filters:
+      "nat-gateway-id": "{{ nat_gateway.nat_gateway_id }}"
+    region: "{{ region_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+  register: nat_status
+  until: nat_status.result is defined and nat_status.result | length > 0 and nat_status.result[0].state == "available"
+  retries: 20
+  delay: 15
+  delegate_to: localhost
+
+- name: Create private subnet
+  amazon.aws.ec2_vpc_subnet:
+    state: present
+    vpc_id: "{{ my_vpc.vpc.id }}"
+    cidr: "{{ private_subnet_cidr_block }}"
+    az: "{{ region_name }}a"
+    region: "{{ region_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    tags:
+      Name: "{{ vpc_name }}-private-subnet"
+  register: private_subnet
+
+- name: Create route table for private subnet
+  amazon.aws.ec2_vpc_route_table:
+    vpc_id: "{{ my_vpc.vpc.id }}"
+    region: "{{ region_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    tags:
+      Name: "{{ vpc_name }}-private-rt"
+    subnets:
+    - "{{ private_subnet.subnet.id }}"
+    routes:
+    - dest: 0.0.0.0/0
+      nat_gateway_id: "{{ nat_gateway.nat_gateway_id }}"
+
 - name: Launching three EC2 instances on AWS
   amazon.aws.ec2_instance:
     # name: "public-compute-instance2"
