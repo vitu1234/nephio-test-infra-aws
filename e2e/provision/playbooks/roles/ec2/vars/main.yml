@@ -17,7 +17,7 @@ region_name: ap-northeast-3
 ami_id: ami-0c1907b6d738188e5 #ubuntu 20.04 LTS
 
 keypair: mynephio2025
-instance_flavour: t3.xlarge
+instance_flavour: t3.large
 
 # vpc_id: vpc-0de3cf98b112bed75
 vpc_name: nephio-5g

@@ -38,6 +38,10 @@
   debug:
     msg: "Subnet ID is {{ my_subnet.subnet.id }}"
 
+- name: Output Public Subnet AZ
+  debug:
+    msg: "Public Subnet AZ is {{ my_subnet.subnet.availability_zone }}"
+
 - name: Create internet gateway
   ec2_vpc_igw:
     vpc_id: "{{ my_vpc.vpc.id }}"
@@ -142,7 +146,7 @@
     state: present
     vpc_id: "{{ my_vpc.vpc.id }}"
     cidr: "{{ private_subnet_cidr_block }}"
-    az: "{{ region_name }}a"
+    az: "{{ my_subnet.subnet.availability_zone }}"
     region: "{{ region_name }}"
     aws_access_key: "{{ access_key }}"
     aws_secret_key: "{{ secret_key }}"
@@ -180,7 +184,7 @@
     volumes:
     - device_name: /dev/sda1
       ebs:
-        volume_size: 200
+        volume_size: 100
         delete_on_termination: true
     tags:
       Name: "{{ item }}"
