@@ -16,11 +16,11 @@
 
 ### **INSTALLATION - PREPARE ENVIRONMENT**
 
-- **Create AWS resources manually**
+- **AWS resources from the script**
 
   - VPC
   - Private and Public Gateway
-  - Route Tables for each subnet
+  - Route Tables for each subnet - one public and one private gateways are created
   - NAT gateway
   - Internet gateway
   - To keep things simple and POC, the management cluster is in the public az and all workload clusters are in private az but the process is the same to achieve workload clusters in different az same region and VPC
