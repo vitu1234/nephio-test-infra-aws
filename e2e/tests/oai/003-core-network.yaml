@@ -20,8 +20,8 @@ spec:
   downstream:
     repo: core
     package: oai-nrf
-  annotations:
-    approval.nephio.org/policy: initial
+  # annotations:
+  #   approval.nephio.org/policy: initial
   injectors:
   - name: core
 ---
@@ -71,8 +71,8 @@ spec:
   downstream:
     repo: core
     package: oai-udr
-  annotations:
-    approval.nephio.org/policy: initial
+  # annotations:
+  #   approval.nephio.org/policy: initial
   injectors:
   - name: core
 ---
@@ -88,8 +88,8 @@ spec:
   downstream:
     repo: core
     package: oai-amf
-  annotations:
-    approval.nephio.org/policy: initial
+  # annotations:
+  #   approval.nephio.org/policy: initial
   injectors:
   - name: core
 ---
@@ -105,8 +105,8 @@ spec:
   downstream:
     repo: core
     package: oai-smf
-  annotations:
-    approval.nephio.org/policy: initial
+  # annotations:
+  #   approval.nephio.org/policy: initial
   injectors:
   - name: core
 ---
@@ -122,7 +122,7 @@ spec:
   downstream:
     repo: edge
     package: oai-upf
-  annotations:
-    approval.nephio.org/policy: initial
+  # annotations:
+  #   approval.nephio.org/policy: initial
   injectors:
   - name: edge

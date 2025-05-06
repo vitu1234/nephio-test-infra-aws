@@ -20,8 +20,8 @@ spec:
   downstream:
     repo: regional
     package: oai-ran-cucp
-  annotations:
-    approval.nephio.org/policy: initial
+  # annotations:
+  #   approval.nephio.org/policy: initial
   injectors:
   - name: regional
 ---
@@ -37,8 +37,8 @@ spec:
   downstream:
     repo: edge
     package: oai-ran-du
-  annotations:
-    approval.nephio.org/policy: initial
+  # annotations:
+  #   approval.nephio.org/policy: initial
   injectors:
   - name: edge
 ---
@@ -54,8 +54,8 @@ spec:
   downstream:
     repo: edge
     package: oai-ran-cuup
-  annotations:
-    approval.nephio.org/policy: initial
+  # annotations:
+  #   approval.nephio.org/policy: initial
   injectors:
   - name: edge
 
