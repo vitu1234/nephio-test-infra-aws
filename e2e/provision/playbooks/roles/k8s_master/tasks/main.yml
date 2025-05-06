@@ -1,5 +1,11 @@
 ---
 # tasks file for k8s_master
+- name: Replace default Ubuntu mirror with main archive.ubuntu.com
+  replace:
+    path: /etc/apt/sources.list
+    regexp: 'http://.*.ec2.archive.ubuntu.com'
+    replace: 'http://archive.ubuntu.com'
+  
 - name: update APT packages
   apt:
     update_cache: yes
