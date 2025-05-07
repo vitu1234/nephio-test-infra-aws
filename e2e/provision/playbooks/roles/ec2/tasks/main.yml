@@ -222,6 +222,8 @@
     private_ip_address: "{{ item.ip }}"
     tags:
       Name: "{{ item.name }}"
+      Role: "{{ item.name.split('-')[1] | default('unknown') }}"
+      SubnetName: "{{ item.subnet_name }}"
   loop: "{{ network_interfaces }}"
   loop_control:
     label: "{{ item.name }}"
