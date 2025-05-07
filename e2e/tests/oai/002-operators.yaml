@@ -20,8 +20,8 @@ spec:
   downstream:
     repo: core
     package: oai-cp-operators
-  annotations:
-    approval.nephio.org/policy: initial
+  # annotations:
+  #   approval.nephio.org/policy: initial
   injectors:
   - name: core
 ---
@@ -37,8 +37,8 @@ spec:
   downstream:
     repo: edge
     package: oai-up-operators
-  annotations:
-    approval.nephio.org/policy: initial
+  # annotations:
+  #   approval.nephio.org/policy: initial
   injectors:
   - name: edge
 
