@@ -22,10 +22,10 @@ instance_flavour: t3.large
 # vpc_id: vpc-0de3cf98b112bed75
 vpc_name: nephio-5g
 vpc_cidr_block: 192.168.0.0/20
-subnet_cidr_block: 192.168.0.0/24
-private_subnet_cidr_block: 192.168.1.0/24
+subnet_cidr_block: 192.168.0.0/24 #public instances subnet
+private_subnet_cidr_block: 192.168.1.0/24 #primary subnet
 
-# for additional subnets - testing purposes
+# for additional subnets - preconfigure topology
 private_subnets:
 - name: my_private_subnet1
   cidr: 192.168.9.0/24
@@ -36,33 +36,35 @@ private_subnets:
 - name: my_private_subnet4
   cidr: 192.168.11.0/24
 
+# CUUP_N3_IP and UPF_N3_IP are on primary interface
 #matching the oai-topology
 network_interfaces:
 - name: customeni-edge1
-  ip: 192.168.9.203
+  ip: 192.168.9.203 #UPF_N4_IP
   subnet_name: my_private_subnet1
 - name: customeni-edge2
-  ip: 192.168.8.16
+  ip: 192.168.8.16 # UPF_N6_IP
   subnet_name: my_private_subnet2
 - name: customeni-edge3
-  ip: 192.168.10.50
+  ip: 192.168.10.50 #CUUP_F1U_GW
   subnet_name: my_private_subnet3
 - name: customeni-edge4
-  ip: 192.168.11.60
+  ip: 192.168.11.60 #CUUP_E1_IP
   subnet_name: my_private_subnet4
+
 - name: customeni-core1
-  ip: 192.168.8.53
+  ip: 192.168.8.53 #AMF_N2_IP
   subnet_name: my_private_subnet2
 - name: customeni-core2
-  ip: 192.168.9.55
+  ip: 192.168.9.55 #SMF_N4_IP
   subnet_name: my_private_subnet1
 
 - name: customeni-regional1
-  ip: 192.168.8.55
+  ip: 192.168.8.55 #CUCP_N2_IP
   subnet_name: my_private_subnet2
 - name: customeni-regional2
-  ip: 192.168.11.20
+  ip: 192.168.11.20 #CUCP_E1_IP
   subnet_name: my_private_subnet4
 - name: customeni-regional3
-  ip: 192.168.10.21
+  ip: 192.168.10.21 #CUCP_F1C_IP
   subnet_name: my_private_subnet3
