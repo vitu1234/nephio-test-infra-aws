@@ -45,10 +45,10 @@ network_interfaces:
   ip: 192.168.8.16
   subnet_name: my_private_subnet2
 - name: customeni-edge3
-  ip: 192.168.10.21
+  ip: 192.168.10.50
   subnet_name: my_private_subnet3
 - name: customeni-edge4
-  ip: 192.168.11.20
+  ip: 192.168.11.60
   subnet_name: my_private_subnet4
 - name: customeni-core1
   ip: 192.168.8.53
@@ -56,8 +56,9 @@ network_interfaces:
 - name: customeni-core2
   ip: 192.168.9.55
   subnet_name: my_private_subnet1
+
 - name: customeni-regional1
-  ip: 192.168.8.16
+  ip: 192.168.8.55
   subnet_name: my_private_subnet2
 - name: customeni-regional2
   ip: 192.168.11.20
