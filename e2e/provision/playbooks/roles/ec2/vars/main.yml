@@ -2,19 +2,19 @@
 # vars file for ec2
 
 instance_tag:
-      - control-demo
-      - node1-demo
-      - node2-demo
+- control-demo
+- node1-demo
+- node2-demo
 
 python_pkgs:
-      - boto
-      - boto3
+- boto
+- boto3
 
 sg_name: default
-region_name: ap-northeast-3
+region_name: ap-southeast-1
 # subnet_name: subnet-0a520f7a16813dbcb
 # ami_id: ami-09a7535106fbd42d5 #ubuntu 22.04 LTS
-ami_id: ami-0c1907b6d738188e5 #ubuntu 20.04 LTS
+ami_id: ami-0c1907b6d738188e5 #ubuntu 22.04 LTS
 
 keypair: mynephio2025
 instance_flavour: t3.large
@@ -23,3 +23,45 @@ instance_flavour: t3.large
 vpc_name: nephio-5g
 vpc_cidr_block: 192.168.0.0/20
 subnet_cidr_block: 192.168.0.0/24
+private_subnet_cidr_block: 192.168.1.0/24
+
+# for additional subnets - testing purposes
+private_subnets:
+- name: my_private_subnet1
+  cidr: 192.168.9.0/24
+- name: my_private_subnet2
+  cidr: 192.168.8.0/24
+- name: my_private_subnet3
+  cidr: 192.168.10.0/24
+- name: my_private_subnet4
+  cidr: 192.168.11.0/24
+
+#matching the oai-topology
+network_interfaces:
+- name: customeni-edge1
+  ip: 192.168.9.203
+  subnet_name: my_private_subnet1
+- name: customeni-edge2
+  ip: 192.168.8.16
+  subnet_name: my_private_subnet2
+- name: customeni-edge3
+  ip: 192.168.10.21
+  subnet_name: my_private_subnet3
+- name: customeni-edge4
+  ip: 192.168.11.20
+  subnet_name: my_private_subnet4
+- name: customeni-core1
+  ip: 192.168.8.53
+  subnet_name: my_private_subnet2
+- name: customeni-core2
+  ip: 192.168.9.55
+  subnet_name: my_private_subnet1
+- name: customeni-regional1
+  ip: 192.168.8.16
+  subnet_name: my_private_subnet2
+- name: customeni-regional2
+  ip: 192.168.11.20
+  subnet_name: my_private_subnet4
+- name: customeni-regional3
+  ip: 192.168.10.21
+  subnet_name: my_private_subnet3

@@ -168,6 +168,64 @@
     - dest: 0.0.0.0/0
       nat_gateway_id: "{{ nat_gateway.nat_gateway_id }}"
 
+## additional
+- name: Create additional private subnets and route tables
+  block:
+  - name: Create private subnet {{ item.name }}
+    amazon.aws.ec2_vpc_subnet:
+      state: present
+      vpc_id: "{{ my_vpc.vpc.id }}"
+      cidr: "{{ item.cidr }}"
+      az: "{{ my_subnet.subnet.availability_zone }}"
+      region: "{{ region_name }}"
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      tags:
+        Name: "{{ item.name }}"
+    loop: "{{ private_subnets }}"
+    loop_control:
+      loop_var: item
+    delegate_to: localhost
+    register: private_subnet_results
+
+  - name: Create route table for {{ item.item.name }}
+    amazon.aws.ec2_vpc_route_table:
+      vpc_id: "{{ my_vpc.vpc.id }}"
+      region: "{{ region_name }}"
+      aws_access_key: "{{ access_key }}"
+      aws_secret_key: "{{ secret_key }}"
+      tags:
+        Name: "{{ item.item.name }}-rt"
+      subnets:
+      - "{{ item.subnet.id }}"
+      routes:
+      - dest: 0.0.0.0/0
+        nat_gateway_id: "{{ nat_gateway.nat_gateway_id }}"
+    loop: "{{ private_subnet_results.results }}"
+    delegate_to: localhost
+
+## create ENIs
+- name: Map subnet name to ID
+  set_fact:
+    subnet_id_map: >-
+      {{
+        dict(private_subnet_results.results | map(attribute='item.name') | zip(private_subnet_results.results | map(attribute='subnet.id')))
+      }}
+
+- name: Create ENIs
+  amazon.aws.ec2_eni:
+    state: present
+    region: "{{ region_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    subnet_id: "{{ subnet_id_map[item.subnet_name] }}"
+    private_ip_address: "{{ item.ip }}"
+    tags:
+      Name: "{{ item.name }}"
+  loop: "{{ network_interfaces }}"
+  loop_control:
+    label: "{{ item.name }}"
+
 - name: Launching three EC2 instances on AWS
   amazon.aws.ec2_instance:
     # name: "public-compute-instance2"
@@ -184,7 +242,7 @@
     volumes:
     - device_name: /dev/sda1
       ebs:
-        volume_size: 100
+        volume_size: 200
         delete_on_termination: true
     tags:
       Name: "{{ item }}"
