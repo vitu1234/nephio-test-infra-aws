@@ -1,8 +1,8 @@
 ### **OAI 5G CONFIGURATION**
 
 This section provides an overview of the IP address and network configuration used across worker nodes in workload clusters for OAI 5G deployment.
-The auto approval should be for operators and network functions has been disabled to allow modification of the configurations before deployment.
-------------------------------------------------------------------------------------------------------------------------------------------------
+The auto approval for operators and network functions has been disabled to allow modification of the configurations before deployment.
+--------------------------------------------------------------------------------------------------------------------------------------
 
 #### Interface Requirements Per Cluster
 
@@ -514,4 +514,3 @@ porchctl rpkg push <pkg-revision> -n default oai-amf
 porchctl rpkg propose <pkg-revision> -n default
 porchctl rpkg approve <pkg-revision> -n default
 ```
-
