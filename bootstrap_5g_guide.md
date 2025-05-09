@@ -137,7 +137,7 @@
 
 ```yaml
   environment:
-      AWS_REGION: ap-northeast-2
+      AWS_REGION: ap-southeast-1
       AWS_ACCESS_KEY_ID: ""
       AWS_SECRET_ACCESS_KEY: ""
       AWS_SESSION_TOKEN: ""
@@ -148,7 +148,7 @@
   Like wise, place the credentials in *e2e/provision/playbooks/roles/capa/vars/main.yml* following section for CAPA
 
 ```yaml
-  aws_region: "ap-northeast-2"
+  aws_region: "ap-southeast-1"
   aws_access_key: ""
   aws_secret_key: ""
   aws_session_token:
@@ -404,7 +404,7 @@
   ![image.png](images/images_bootstrap_5g_guide/image%2040.png)
 - In the AWSMachineTemplate files add the machine flavor, keypair for the CP and worker node. For the worker node, the recommendation is to use c5.4xlarge
 - In the Cluster, add pod cidr and service cidr
-- Add AMI cluster API image tag in the **AWSMachineTemplate** resource, i used ami-0a1cfa462ff5dc5d9 available in the ap-northeast-2 region
+- Add AMI cluster API image tag in the **AWSMachineTemplate** resource, i used ami-0a1cfa462ff5dc5d9 available in the ap-southeast-1 region
 - Save, Propose and Approve
 - After sometime the cluster will be created on AWS
 - Repeat for all core and regional cluster and the clusters will be created
