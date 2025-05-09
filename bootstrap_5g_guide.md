@@ -19,6 +19,7 @@
 - All the network functions fields have been prepopulated with configurations matching the test environment
 - All AWS resources are pre-created during management cluster bootstrapping
 - The management cluster is deployed in a public subnet to allow the Gitea server to be accessible from any cluster that requires it
+- Make sure you follow [THIS](#if-using-cilium-cni) if you are usimg Cilium CNI
 
 ### **RESULTS**
 
@@ -519,3 +520,23 @@
   kubectl exec -it iperf-client -- iperf3 -c <server-ip> -i 5
 ```
 
+
+
+---
+
+### If Using Cilium CNI
+
+**Important:** Disable Cilium exclusivity over `/etc/cni/net.d` on all nodes.
+
+```bash
+kubectl edit cm -n kube-system cilium-config --kubeconfig core.kubeconfig
+
+# Set this field:
+exclusive: false
+```
+
+Restart related DaemonSets:
+
+```bash
+kubectl rollout restart ds cilium kube-multus-ds -n kube-system --kubeconfig core.kubeconfig
+```
