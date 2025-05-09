@@ -68,7 +68,7 @@ git clone https://github.com/vitu1234/nephio-test-infra-aws test-infra
 
 Refer to the [Nephio OAI Deployment Guide – Step 3 onward](https://github.com/nephio-project/docs/blob/R4/content/en/docs/guides/user-guides/usecase-user-guides/exercise-2-oai.md#step-3-deploy-dependencies-mysql-database-oai-core-and-ran-operator-in-the-workload-clusters)
 
-#### Step 3: Deploy Dependencies, MySQL database, OAI Core and RAN Operator in the Workload clusters
+#### **Step 3: Deploy Dependencies, MySQL database, OAI Core and RAN Operator in the Workload clusters**
 
 Now you will need to deploy the MySQL database required by OAI UDR network function, OAI Core and RAN operators across the Workload clusters. To do this, you use *PackageVariant* and *PackageVariantSet*. Later uses an objectSelector to select the WorkloadCluster resources previously added to the Management cluster when you had deployed the *nephio-workload-cluster* packages (manually as well as via *PackageVariantSet*).
 
@@ -87,7 +87,7 @@ packagevariant.config.porch.kpt.dev/oai-ran-operator-edge created
 packagevariant.config.porch.kpt.dev/oai-ran-operator-regional created
 ```
 
-#### Step 4: Check Database and Operator Deployment
+#### **Step 4: Check Database and Operator Deployment**
 
 Within five minutes of applying the RAN, Core Operator, and database Packages, you should see oai-core and oai-cn-operators namespaces on the Core workload cluster:
 
@@ -200,7 +200,7 @@ NAME                                READY   STATUS    RESTARTS   AGE
 oai-upf-operator-75cbc869cb-67lf9   1/1     Running   0          16m
 ```
 
-#### Step 5: Deploy the Core Network Functions
+#### **Step 5: Deploy the Core Network Functions**
 
 You can start by deploying the core network functions which the operator will instantiate. For now, you will use individual *PackageVariants* targeting the Core and Edge cluster. In the future, you could put all of these resources into
 yet-another-package - a "topology" package - and deploy them all as a unit. Or you can use a topology controller to create them. But for now, let's do each manually.
@@ -227,7 +227,7 @@ described by *dependency.yaml* file in SMF package. It will wait till the time U
 case MetalLB ip-address pool is not properly defined in the previous section, then UPF will not be able to register to
 NRF and in this case SMF and UPF will not be able to communicate.
 
-### Check Core Network Deployment
+#### Check Core Network Deployment
 
 You can check if all the control plane network functions are up and running
 
@@ -294,7 +294,7 @@ content-length: 58
 
 In the logs you should see **Received SX HEARTBEAT REQUEST** statement. If that is present then SMF and UPF are sharing PFCP heartbeats.
 
-#### Step 6: Deploy RAN Network Functions
+#### **Step 6: Deploy RAN Network Functions**
 
 If the core network functions are running and configured properly then you can start by deploying RAN network function *PackageVariants*.
 
@@ -312,7 +312,7 @@ packagevariant.config.porch.kpt.dev/oai-cuup created
 
 Wait for ~1500 seconds for the RAN network functions to come up.
 
-### Check RAN Deployment
+#### Check RAN Deployment
 
 You can check if the deployment of RAN components, CU-CP in Regional cluster and CU-UP and DU in Edge cluster respectively.
 
@@ -387,7 +387,7 @@ The output is similar to:
 9496.571150 [GNB_APP] I [gNB 0] Received NGAP_REGISTER_GNB_CNF: associated AMF 1
 ```
 
-#### Step 7: Deploy UE
+#### **Step 7: Deploy UE**
 
 If all three links are configured then you can proceed with deploying the UE *PackageVariants*
 
@@ -429,7 +429,7 @@ The output is similar to:
 24910.122107 [OIP] I Interface oaitun_ue1 successfully configured, ip address 10.2.0.2, mask 255.255.255.0 broadcast address 10.2.0.255
 ```
 
-#### Step 8: Test the End to End Connectivity
+#### **Step 8: Test the End to End Connectivity**
 
 To perform the end to end connectivity test you can ping from the UE to the UPF.
 
