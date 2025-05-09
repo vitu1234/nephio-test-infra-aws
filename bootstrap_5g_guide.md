@@ -417,7 +417,7 @@
 
   ![image.png](images/images_bootstrap_5g_guide/image%2043.png)
 
-### **nter-cluster networking - Optional**
+### **Inter-cluster networking - Optional**
 
   **load clusters**
 
