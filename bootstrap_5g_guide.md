@@ -419,7 +419,7 @@
 
 ### **Inter-cluster networking - Optional**
 
-  **load clusters**
+  **Workload clusters**
 
   You will also need to configure the clusters with Cilium. Again, this will be automated in a future release.
 
