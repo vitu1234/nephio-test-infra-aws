@@ -41,6 +41,9 @@ Once interfaces are attached and **no IP addresses** are configured manually:
 ```bash
 # Resolve IP via DHCP
 sudo dhclient <interface-name>
+# or simply, do this
+sudo ip link set <interface-name> up
+
 
 # Optional: Kill DHCP client to prevent reassignment (if using L3 mode)
 sudo pkill dhclient

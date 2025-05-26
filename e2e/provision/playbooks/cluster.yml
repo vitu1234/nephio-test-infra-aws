@@ -27,10 +27,11 @@
   ansible.builtin.pip:
     name: kubernetes==26.1.0
     executable: pip3
-    
+
 - name: Gather facts
   setup:
-  
+
+
 - name: Unarchive /tmp/porchctl.tgz into /usr/local/bin/
   become: true
   become_user: root
@@ -52,9 +53,10 @@
   ansible.builtin.include_role:
     name: kpt
   loop:
-    - {pkg: distros/sandbox/repository, dest: /tmp/repository/mgmt}
-    - {pkg: nephio/optional/argoapp, dest: /tmp/argoapp/mgmt}
-    - {pkg: distros/sandbox/repository, dest: /tmp/repository/mgmt-staging}
+  - { pkg: distros/sandbox/repository, dest: /tmp/repository/mgmt }
+  - { pkg: nephio/optional/argoapp, dest: /tmp/argoapp/mgmt }
+  - { pkg: distros/sandbox/repository, dest: /tmp/repository/mgmt-staging }
+  - { pkg: distros/sandbox/repository, dest: /tmp/repository/dr }
   vars:
     repo_uri: "{{ nephio_catalog_repo_uri }}"
     local_dest_directory: "{{ item.dest }}"
@@ -87,5 +89,6 @@
       type: Ready
       status: true
   loop:
-    - mgmt
-    - mgmt-staging
+  - mgmt
+  - mgmt-staging
+  - dr

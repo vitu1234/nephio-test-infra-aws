@@ -18,9 +18,6 @@
     path: "{{ workdir | dirname }}"
     state: directory
 
-
-
-
 - name: "Fetch package: {{ pkg }}"
   kpt:
     repo_uri: "{{ repo_uri }}"
@@ -40,7 +37,6 @@
   ansible.builtin.debug:
     var: kpt_pkg_tree.stdout_lines
 
-
 #Get node IP for creating Node port service
 - name: Get the list of nodes in wide format
   command: kubectl get nodes -o wide --no-headers
@@ -49,27 +45,27 @@
 - name: Extract a node IP address
   set_fact:
     node_ip: "{{ kubectl_output.stdout_lines[0].split()[5] }}"
-    
+
 - name: Display the node IP
   debug:
     msg: "The selected node IP is: {{ node_ip }}"
 
 - name: Get HTTP port for gitea service
-  command: kubectl get svc -n gitea gitea -o=jsonpath='{.spec.ports[?(@.port==3000)].nodePort}' 
+  command: kubectl get svc -n gitea gitea -o=jsonpath='{.spec.ports[?(@.port==3000)].nodePort}'
   register: http_port_raw
   changed_when: false
   check_mode: no
-  when: workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
+  when: workdir == "/tmp/repository/dr" or workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
 
 - name: Extract HTTP port from raw output
   set_fact:
     http_port: "{{ http_port_raw.stdout }}"
-  when: workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
+  when: workdir == "/tmp/repository/dr" or workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
 
 - name: Display HTTP port
   debug:
     msg: "HTTP port for gitea service is {{ http_port }}"
-  when: workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
+  when: workdir == "/tmp/repository/dr" or workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
 
 - name: Print public facts
   debug:
@@ -91,8 +87,7 @@
   debug:
     msg: "The EC2 slave2 IP address is {{ hostvars['localhost']['ec2_slave2_ip'] }}"
 
-
- #modify the repo IP address
+#modify the repo IP address
 - name: Create a ConfigMap manifest
   copy:
     dest: "{{ workdir }}/configmap.yaml"
@@ -106,7 +101,7 @@
       data:
         node-ip: "{{ hostvars['localhost']['ec2_master_ip'] }}"
         node-port: "{{ http_port }}"
-  when: workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" 
+  when: workdir == "/tmp/repository/dr" or workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt"
 
 #modify the repo IP address only for the operator
 - name: Create a ConfigMap manifest for Nephio Operator
@@ -122,8 +117,7 @@
       data:
         node-ip: "{{ hostvars['localhost']['ec2_master_ip'] }}"
         node-port: "{{ http_port }}"
-  when: workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator" 
-
+  when: workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
   #modify the repo IP address only for argoapp
 - name: Create a ConfigMap manifest for ArgoApp
   copy:
@@ -140,24 +134,22 @@
         node-port: "{{ http_port }}"
   when: workdir == "/tmp/argoapp/mgmt"
 
-
-
 - name: Get HTTP port for gitea service
   command: kubectl get svc -n gitea gitea -o=jsonpath='{.spec.ports[?(@.port==3000)].nodePort}'
   register: http_port_raw
   changed_when: false
   check_mode: no
-  when: workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
+  when: workdir == "/tmp/repository/dr" or workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
 
 - name: Extract HTTP port from raw output
   set_fact:
     http_port: "{{ http_port_raw.stdout }}"
-  when: workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
+  when: workdir == "/tmp/repository/dr" or workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
 
 - name: Display HTTP port
   debug:
     msg: "HTTP port for gitea service is {{ http_port }}"
-  when: workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
+  when: workdir == "/tmp/repository/dr" or workdir == "/tmp/repository/mgmt-staging" or workdir == "/tmp/repository/mgmt" or workdir == "/tmp/kpt-pkg/nephio/core/nephio-operator"
 
 # TODO: Improve the render function
 - name: "Render package: {{ pkg }}"
