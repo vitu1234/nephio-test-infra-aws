@@ -418,6 +418,12 @@
 
   ![image.png](images/images_bootstrap_5g_guide/image%2043.png)
 
+
+  #### **After Cluster Creation - Label the clusters**
+  ```bash
+    kubectl label WorkloadCluster my-cluster nephio.org/site-type=<clustername>
+  ```
+
 ### **Inter-cluster networking - Optional**
 
   **Workload clusters**
